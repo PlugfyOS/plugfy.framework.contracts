@@ -16,17 +16,17 @@ import "context"
 // The four phases run in this order for each Unit execution:
 //
 //  1. OnInit                - resource acquisition: open connections,
-//                              fetch credentials, prepare buffers.
+//     fetch credentials, prepare buffers.
 //  2. OnProcessParameters    - validate, normalize and resolve template
-//                              expressions in the input map. Returns the
-//                              processed inputs for the next phase.
+//     expressions in the input map. Returns the
+//     processed inputs for the next phase.
 //  3. OnExecute              - the actual work. Receives processed inputs,
-//                              returns outputs (or error).
+//     returns outputs (or error).
 //  4. OnFinalize             - always-runs cleanup: close connections,
-//                              report metrics, scrub sensitive data from
-//                              the output. Receives the outcome (outputs
-//                              and possibly an error) and MAY mutate the
-//                              outputs (e.g. apply IO.Mask field redaction).
+//     report metrics, scrub sensitive data from
+//     the output. Receives the outcome (outputs
+//     and possibly an error) and MAY mutate the
+//     outputs (e.g. apply IO.Mask field redaction).
 //
 // Units that need only a subset of hooks SHOULD embed [DefaultLifecycle]
 // (provided by the SDK) and override the relevant methods.
