@@ -1,9 +1,12 @@
 # Roadmap — plugfy-common
 
-| Milestone | Objetivo | Itens |
+| Milestone | Goal | Items |
 |---|---|---|
-| **v1.0.0** | ABI base estável e stdlib-only | CMN-01..08 |
-| **v1.1.0** | Contrato de telemetria de 1ª classe | CMN-09 |
-| **v1.2.0** | Trace distribuído via event-bus | CMN-10 |
+| **v1.0.0** | Stable, stdlib-only base ABI | CMN-01..06, CMN-08 |
+| **v1.1.0** | First-class telemetry contract + frozen ABI | CMN-07, CMN-09 |
+| **v1.2.0** | Distributed trace over the event bus | CMN-10 |
 
-Amarrado ao roadmap mestre em [`PlugfyOS/plugfy-platform`](https://github.com/PlugfyOS/plugfy-platform). Como L1, `plugfy-common` é a primeira unit de qualquer onda de release — todas as demais pinam `^1.x` dela.
+Tied to the master roadmap in
+[`PlugfyOS/plugfy-platform`](https://github.com/PlugfyOS/plugfy-platform). As the
+L1 baseplate, `plugfy-common` is the first unit of any release wave — every other
+module pins `^1.x` of it, so its ABI must stay backward-compatible within a major.

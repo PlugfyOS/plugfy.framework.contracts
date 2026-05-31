@@ -1,35 +1,54 @@
-# Arquitetura — plugfy-common
+# Architecture — plugfy-common
 
-## Posição
+## Position
 
-- **Camada:** L1 — ABI / Contratos SPI (a baseplate).
-- **Dimensão:** Foundations.
-- **Kind:** `shared-baseplate` — não é unit (não se auto-registra, não tem manifesto/capability) e não é host (não compõe nada). É a ABI primitiva que todos linkam em build-time.
+- **Layer:** L1 — ABI / SPI contracts (the baseplate).
+- **Dimension:** Foundations.
+- **Kind:** `shared-baseplate` — it is **not a unit** (it does not self-register,
+  carries no manifest or capability) and **not a host** (it composes nothing). It
+  is the primitive ABI every other module links at build time.
 
-## Fronteiras
+## Boundaries
 
-**Faz:** define interfaces, o envelope `CloudEvent`, e utilitários puros (ids/errs/idempotency/resilience). Nada mais.
+**Does:** define interfaces (the provider SPI, the unit lifecycle, the event bus),
+the `CloudEvent` envelope, and pure utilities (`ids` / `errs` / `idempotency` /
+`resilience`). Nothing more.
 
-**Não faz:** persistência, HTTP, backends concretos (Postgres/NATS/S3), lógica de domínio, UI. Esses vivem nas camadas acima — driver (L2), runtime (L3/L4), system services (L7).
+**Does not:** persistence, HTTP, concrete backends (Postgres / NATS / S3), domain
+logic, UI. Those live in the layers above — drivers (L2), runtime (L3), kernel
+(L4), the API host (L6), and system services (L7).
 
-## Inversão de dependência
+## Dependency inversion
 
-O domínio define a porta; o adapter a implementa. Por isso o adapter depende **deste** contrato — nunca o contrário. A seta de dependência aponta sempre para cá.
+The domain defines the port; the adapter implements it. The adapter therefore
+depends on **this** contract — never the reverse. The dependency arrow always
+points here.
 
 ```
-L2 platform-provider-*  ──implementa──►  spi.* (aqui)  ◄──define/usa──  L7 system-*
+L2 platform-provider-*  ──implements──►  spi.* (here)  ◄──defines/uses──  L7 system-*
                                           ▲
-                          todos os hosts (L3/L4/L6) também linkam
+                          every host (L3 runtime / L4 kernel / L6 api) also links
 ```
 
-## Gate de fronteira (decouple-check)
+## Boundary gate (decouple-check)
 
-`scripts/decouple-check.sh` falha o build se:
-1. houver qualquer `require` no `go.mod` (deve ser **stdlib-only**);
-2. algum pacote importar outro repo `PlugfyOS/*`.
+`scripts/decouple-check.sh` fails the build if:
 
-Isso preserva a invariante de que a raiz da árvore de dependência é estável e zero-domínio.
+1. there is any `require` in `go.mod` (it must be **stdlib-only**); or
+2. any package imports another `PlugfyOS/*` repo.
 
-## Versionamento
+This preserves the invariant that the root of the dependency tree is stable and
+zero-domain.
 
-ABI estável: qualquer quebra de assinatura pública é **major**. Os consumidores pinam `^1.x`. Um teste golden de ABI congela as assinaturas exportadas.
+## Versioning
+
+The ABI is stable: any break in a public signature is a **major** bump.
+Consumers pin `^1.x`. A golden ABI test freezes the exported signatures so an
+accidental breaking change is caught in CI.
+
+## Canonical layer rule
+
+A unit at `Lx` depends only on layers `< x`, always through a contract. The
+master layer model lives in
+[`PlugfyOS/plugfy-platform`](https://github.com/PlugfyOS/plugfy-platform) (see
+`docs/PLATFORM-ARCHITECTURE.md`).

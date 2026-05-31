@@ -1,8 +1,8 @@
 // Package resilience provides dependency-free resilience primitives for outbound
-// integrations (ROADMAP F3.2, docs/modular/06): a circuit breaker, a retry
-// policy with exponential backoff, and a bulkhead (bounded concurrency). They
-// compose into a single Guard that connectors wrap around remote calls so a
-// failing dependency degrades gracefully instead of cascading.
+// integrations: a circuit breaker, a retry policy with exponential backoff, and
+// a bulkhead (bounded concurrency). They compose into a single Guard that
+// connectors and the platform-pipeline action layer wrap around remote calls so
+// a failing dependency degrades gracefully instead of cascading.
 package resilience
 
 import (

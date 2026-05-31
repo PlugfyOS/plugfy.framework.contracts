@@ -3,10 +3,8 @@ package spi
 import "context"
 
 // Lifecycle hooks define the canonical phases a Unit goes through on every
-// execution. They formalize the template-method pattern observed in
-// FlowSwitch.Ext.Node.Module.WebServices.BaseDefinitions (Plugfy 2017) and
-// elevate it to a contract for the unified Pipeline Engine
-// (docs/UNIFIED_PIPELINE_MOTOR.md).
+// execution. They elevate the template-method pattern into a contract for the
+// platform-pipeline engine, which invokes the four hooks in order per node.
 //
 // All hooks receive a [LifecycleContext]. They MUST be safe to call
 // concurrently across distinct execution IDs but NOT for the same
@@ -29,11 +27,7 @@ import "context"
 //     outputs (e.g. apply IO.Mask field redaction).
 //
 // Units that need only a subset of hooks SHOULD embed [DefaultLifecycle]
-// (provided by the SDK) and override the relevant methods.
-//
-// Sprint 1 T1.1: introduces the contract.
-// Sprint 6 T6.0+: pipeline.Engine invokes hooks in order.
-// Sprint 8: plugfy-sdk-go ships DefaultLifecycle + builder helpers.
+// (re-exported by plugfy-sdk) and override the relevant methods.
 type Lifecycle interface {
 	OnInit(ctx LifecycleContext) error
 	OnProcessParameters(ctx LifecycleContext, in map[string]any) (map[string]any, error)
@@ -45,9 +39,9 @@ type Lifecycle interface {
 // It carries identity (which unit, which run), tracing, cancellation,
 // access to credentials and state, and structured logging.
 //
-// Mirrored on the SDK side as a thin facade so 3rd-party Units never
-// import internal/. Plugfy OS implementations satisfy this interface
-// from internal/pipeline/exec_context.go (Sprint 6).
+// Re-exported through plugfy-sdk as a thin facade so third-party units never
+// import platform internals; the platform-pipeline engine supplies the concrete
+// implementation at execution time.
 type LifecycleContext interface {
 	// Context returns the cancellation-aware Go context. Hook
 	// implementations SHOULD use it for downstream calls.

@@ -4,7 +4,8 @@
 // bus) is abstracted behind one of these interfaces so that the concrete
 // implementation can be selected per edition (Local / Cloud / Enterprise).
 //
-// The interfaces mirror the normative contracts in CONTRACTS.md §3.
+// The interfaces are the normative L1 contracts of the platform; the layer
+// model and edition matrix live in PlugfyOS/plugfy-platform.
 package spi
 
 import "context"

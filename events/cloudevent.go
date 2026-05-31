@@ -1,6 +1,7 @@
 // Package events defines the CloudEvents 1.0 envelope used across the Plugfy
-// event bus (Kafka in production, in-process locally) and the
-// canonical event type constants. See CONTRACTS.md §5 and SPECIFICATION.md §11.
+// event bus (NATS JetStream in production, in-process locally) and the canonical
+// event type constants. The bus SPI that carries these is [spi.EventBus]; the
+// platform layer model lives in PlugfyOS/plugfy-platform.
 package events
 
 import (
@@ -46,7 +47,7 @@ func New(id, source, eventType, subject string, data any) (CloudEvent, error) {
 	}, nil
 }
 
-// Canonical event types (CONTRACTS.md §5).
+// Canonical event types emitted across the platform event bus.
 const (
 	TypeIAMOrgCreated      = "com.plugfy.iam.org.created"
 	TypeIAMGrantChanged    = "com.plugfy.iam.grant.changed"

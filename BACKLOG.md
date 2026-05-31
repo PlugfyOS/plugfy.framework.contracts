@@ -1,16 +1,27 @@
 # Backlog — plugfy-common
 
-Itens da v1.0.0 em diante. Labels: `[tipo][prioridade][tamanho]`.
+Items from v1.0.0 onward. Labels: `[type][priority][size]`.
 
-| ID | Título | Tipo | Prio | Tam | Milestone |
+## Delivered (v1.0.0)
+
+| ID | Title | Type | Prio | Size | Milestone |
 |---|---|---|---|---|---|
-| CMN-01 | `spi`: `Provider`, `Kind`, `Lifecycle`, `LifecycleContext`, `EventBus` | FEAT | P0 | M | v1.0.0 |
-| CMN-02 | `events`: envelope `CloudEvent` (CloudEvents 1.0) + helpers `New` | FEAT | P0 | S | v1.0.0 |
-| CMN-03 | `ids`: gerador ULID | FEAT | P0 | S | v1.0.0 |
-| CMN-04 | `errs`: modelo de erro canônico (code/category/wrap) | FEAT | P0 | S | v1.0.0 |
-| CMN-05 | `idempotency`: contrato `Store` + `MemStore` | FEAT | P1 | S | v1.0.0 |
-| CMN-06 | `resilience`: `Breaker`/`RetryPolicy`/`Bulkhead`/`Guard` | FEAT | P1 | M | v1.0.0 |
-| CMN-07 | Teste golden de ABI (congela assinaturas públicas) | TEST | P1 | S | v1.0.0 |
-| CMN-08 | `decouple-check` no CI (stdlib-only + zero import de unit) | CI | P0 | S | v1.0.0 |
-| CMN-09 | Contrato de telemetria no `LifecycleContext` (`Logger`/`Tracer`) | FEAT | P1 | M | v1.1.0 |
-| CMN-10 | `traceparent` como extension do `CloudEvent` (trace cross-unit) | FEAT | P2 | M | v1.2.0 |
+| CMN-01 | `spi`: `Provider`, `Kind`, `Lifecycle`, `DefaultLifecycle`, `LifecycleContext`, `EventBus` | FEAT | P0 | M | v1.0.0 |
+| CMN-02 | `events`: `CloudEvent` envelope (CloudEvents 1.0) + canonical type constants | FEAT | P0 | S | v1.0.0 |
+| CMN-03 | `ids`: ULID generator | FEAT | P0 | S | v1.0.0 |
+| CMN-04 | `errs`: canonical error model (class/code/details/wrap) | FEAT | P0 | S | v1.0.0 |
+| CMN-05 | `idempotency`: `Store` contract + in-memory `MemStore` | FEAT | P1 | S | v1.0.0 |
+| CMN-06 | `resilience`: `Breaker` / `RetryPolicy` / `Bulkhead` / `Guard` | FEAT | P1 | M | v1.0.0 |
+| CMN-08 | `decouple-check` in CI (stdlib-only + zero unit imports) | CI | P0 | S | v1.0.0 |
+
+## Open (tracked on GitHub Issues — the source of truth)
+
+| ID | Title | Type | Prio | Size | Milestone |
+|---|---|---|---|---|---|
+| CMN-07 | Golden ABI test that freezes the exported public signatures | TEST | P1 | S | v1.1.0 |
+| CMN-09 | First-class telemetry contract on `LifecycleContext` (`Logger`/`Tracer` golden coverage) | FEAT | P1 | M | v1.1.0 |
+| CMN-10 | `traceparent` as a `CloudEvent` extension (cross-unit distributed trace) | FEAT | P2 | M | v1.2.0 |
+
+> Open debts are mirrored here for readability; each is filed as a GitHub Issue
+> (label `tech-debt`) and milestoned to its target release, per the
+> [Delivery Standard](https://github.com/PlugfyOS/plugfy-platform/blob/main/docs/DELIVERY-STANDARD.md).

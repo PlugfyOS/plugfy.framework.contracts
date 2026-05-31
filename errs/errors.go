@@ -13,13 +13,9 @@
 //   - Construction is allocation-friendly: most paths take a sentinel
 //     class + code + message, no fmt.Errorf chains required.
 //
-// Sprint 1 T1.4 introduces the type. T1.5 wires it into
-// internal/httpapi/respond.go so every handler emits the same envelope.
-//
-// Cross-references
-//   - docs/UNIFIED_PIPELINE_MOTOR.md §7  — classification used by
-//     Pipeline engine when assigning StepFrame.Status.
-//   - CONTRACTS.md §1 (envelope shape).
+// The platform API host (platform-api) renders this model into the wire error
+// envelope so every handler responds uniformly; the platform-pipeline engine
+// uses the [Class] to classify a failed step's StepFrame status.
 package errs
 
 import (

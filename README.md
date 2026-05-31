@@ -1,23 +1,29 @@
 # plugfy-common
 
-> **L1 — ABI / Contratos (a baseplate do PlugfyOS).** O único módulo que **todo** unit e host linka. Não importa ninguém; é importado por todos.
+> **L1 — ABI / Contracts (the baseplate of PlugfyOS).** The one module that
+> **every** unit and host links. It imports nobody; it is imported by everyone.
 
 [![Layer](https://img.shields.io/badge/layer-L1_ABI-blue)]() [![Deps](https://img.shields.io/badge/deps-stdlib--only-green)]() [![Version](https://img.shields.io/badge/version-1.0.0-informational)]()
 
-## O que é
+## What it is
 
-`plugfy-common` publica as primitivas genéricas e estáveis que sustentam o micro-kernel do PlugfyOS — registro de provider, ciclo de vida de unit, transporte de eventos, IDs, erros, idempotência e resiliência. É **stdlib-only** por design: mantê-lo sem dependências externas garante que a raiz da árvore de dependência nunca arraste um domínio.
+`plugfy-common` publishes the generic, stable primitives that hold up the
+PlugfyOS micro-kernel — the provider SPI, the unit lifecycle, the event-bus
+contract, identifiers, the canonical error model, idempotency, and resilience.
+It is **stdlib-only** by design: keeping the root of the dependency tree free of
+external modules guarantees that the baseplate never drags a domain, a backend,
+or a heavyweight dependency into everything above it.
 
-| Pacote | Conteúdo |
+| Package | Contents |
 |---|---|
-| `spi` | `Provider`, `Lifecycle`, `EventBus` e os `Kind*` — a SPI base que units estendem |
-| `events` | envelope `CloudEvent` (CloudEvents 1.0) + tipos de evento |
-| `ids` | gerador de ULID |
-| `errs` | modelo de erro canônico |
-| `idempotency` | contrato `Store` + impl in-memory |
-| `resilience` | `Breaker`, `RetryPolicy`, `Bulkhead`, `Guard` |
+| `spi` | `Provider`, `Lifecycle` (+ `DefaultLifecycle`, `LifecycleContext`), `EventBus`, and the `Kind*` constants — the base SPI that units extend |
+| `events` | the `CloudEvent` envelope (CloudEvents 1.0, JSON mode) + canonical event-type constants |
+| `ids` | a lexicographically-sortable ULID generator (Crockford base32) |
+| `errs` | the canonical error model (class → HTTP family, stable codes, details, wrap) |
+| `idempotency` | the `Store` contract + an in-memory implementation (replay protection) |
+| `resilience` | `Breaker`, `RetryPolicy`, `Bulkhead`, composed into a single `Guard` |
 
-## Como consumir
+## How to consume
 
 ```go
 import (
@@ -26,20 +32,45 @@ import (
 )
 ```
 
-Um driver/provider implementa uma porta SPI e se auto-registra; um system service define a sua porta e a expõe. Nenhum deles importa a implementação do outro — só este contrato.
+A driver/provider implements an SPI port and self-registers; a system service
+defines its own port and exposes it. Neither imports the other's implementation —
+only this contract. The dependency arrow always points here.
+
+> **App authors** normally import the SDK
+> ([`plugfy-sdk`](https://github.com/PlugfyOS/plugfy-sdk)), which re-exports these
+> contracts behind a single ergonomic surface, rather than depending on
+> `plugfy-common` directly.
+
+## The lifecycle contract (`spi.Lifecycle`)
+
+Every runnable unit runs through four ordered phases per execution; embed
+`spi.DefaultLifecycle` and override only the ones you need:
+
+| Phase | Purpose |
+|---|---|
+| `OnInit` | acquire resources (open connections, fetch credentials, prepare buffers) |
+| `OnProcessParameters` | validate, normalize, and resolve template expressions in the inputs |
+| `OnExecute` | the actual work — receives processed inputs, returns outputs |
+| `OnFinalize` | always-runs cleanup (close connections, report metrics, redact outputs) |
+
+Each phase receives a rich `LifecycleContext` carrying the run/unit identity,
+tenant scope, structured logger, tracer, scoped state, and credential accessor.
 
 ## Build & test
 
 ```bash
-go build ./...
-go test -race ./...
-bash scripts/decouple-check.sh   # garante stdlib-only + zero import de unit
+GOWORK=off go build ./...
+GOWORK=off go test -race ./...
+bash scripts/decouple-check.sh   # enforces stdlib-only + zero unit imports
 ```
 
-## Regra (inegociável)
+## Rule (non-negotiable)
 
-`plugfy-common` é **L1**: a raiz da seta de dependência. **Importa apenas a stdlib** e **nenhum** outro repo `PlugfyOS/*`. Qualquer `require` no `go.mod` ou import de unit **falha o CI**. Tudo que tem domínio, schema, persistência ou backend concreto vive **acima**, nunca aqui.
+`plugfy-common` is **L1**: the root of the dependency arrow. It **imports only
+the standard library** and **no** other `PlugfyOS/*` repo. Any `require` in
+`go.mod` or import of a unit **fails CI**. Anything with a domain, a schema,
+persistence, or a concrete backend lives **above**, never here.
 
-## Licença
+## License
 
-Proprietário — ver [LICENSE](LICENSE).
+Proprietary — see [LICENSE](LICENSE).

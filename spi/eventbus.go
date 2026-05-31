@@ -19,12 +19,11 @@ type Subscription interface {
 }
 
 // EventBus is the SPI for the platform event plane: publish/subscribe over
-// CloudEvents (RFC + spec in [contracts/events]). Implementations include
-// the in-process bus (Local edition) and NATS JetStream with durable
-// consumers (Enterprise edition); Kafka and Pub/Sub adapters are optional.
+// CloudEvents (the [events.CloudEvent] envelope). Implementations include the
+// in-process bus (Local edition) and NATS JetStream with durable consumers
+// (Enterprise edition); Kafka and Pub/Sub adapters are optional.
 //
-// Topic naming follows the convention `<domain>.<event>.v<major>` (see
-// [SPECIFICATION.md §Tópicos CloudEvents]).
+// Topic naming follows the convention `<domain>.<event>.v<major>`.
 //
 // Subscribe creates a durable consumer when the underlying bus supports it
 // (NATS) or an in-memory subscription otherwise. The group identifier
