@@ -156,9 +156,22 @@ package ids // github.com/PlugfyOS/plugfy-common/ids
 
 package installed // github.com/PlugfyOS/plugfy-common/installed
 	const Apps Area = "apps"
+	const AxisABI untyped string = "abi"
+	const AxisChannel untyped string = "channel"
+	const AxisEdition untyped string = "edition"
+	const AxisEngine untyped string = "engine"
+	const AxisHostOS untyped string = "hostOS"
+	const AxisInfra untyped string = "infra"
+	const AxisPlatform untyped string = "platform"
+	const AxisRequires untyped string = "requires"
+	const AxisUISchema untyped string = "uischema"
 	const Capabilities Area = "capabilities"
+	const ChannelBeta Channel = "beta"
+	const ChannelNightly Channel = "nightly"
+	const ChannelStable Channel = "stable"
 	const Data Area = "data"
 	const Drivers Area = "drivers"
+	const HostManifestSchema untyped string = "host-manifest.v1"
 	const Logs Area = "logs"
 	const RenderCustom RenderPath = "custom"
 	const RenderDeclarative RenderPath = "declarative"
@@ -166,15 +179,46 @@ package installed // github.com/PlugfyOS/plugfy-common/installed
 	const System Area = "system"
 	const Themes Area = "themes"
 	const Var Area = "var"
+	func Admissible(CompatSpec, PlatformSpine, CapabilityIndex, Channel) (bool, string)
+	func AdmissibleAxis(CompatSpec, PlatformSpine, CapabilityIndex, Channel) (bool, string, string)
+	func AdmissibleVersions(map[string]CompatSpec, PlatformSpine, CapabilityIndex, Channel) []string
+	func NewCapabilityIndex([]InstalledModule) CapabilityIndex
+	func ParseHostManifest(io.Reader) (HostManifest, error)
 	func ParseIndex(io.Reader) (InstalledIndex, error)
 	func ParseLayout(io.Reader) (SystemLayout, error)
 	func ParseSpine(io.Reader) (PlatformSpine, error)
+	func RangeContains(string, string) bool
 	type Area string
+	type CapabilityIndex map[string]string
+	type Channel method (T) Valid() bool
+	type Channel method (T) VisibleUnder(Channel) bool
+	type Channel string
+	type CompatSpec field ABI string `json:"abi,omitempty"`
+	type CompatSpec field Channel Channel `json:"channel,omitempty"`
+	type CompatSpec field Edition []string `json:"edition,omitempty"`
+	type CompatSpec field Engine string `json:"engine,omitempty"`
+	type CompatSpec field HostOS []string `json:"hostOS,omitempty"`
+	type CompatSpec field Infra InfraSupport `json:"infra,omitzero"`
+	type CompatSpec field Platform string `json:"platform,omitempty"`
+	type CompatSpec field Requires []spi.CapabilityRequirement `json:"requires,omitempty"`
+	type CompatSpec field UISchema string `json:"uischema,omitempty"`
+	type CompatSpec struct
 	type Compatibility field Edition string `json:"edition,omitempty"`
 	type Compatibility field HostOS string `json:"hostOS,omitempty"`
 	type Compatibility field Infra string `json:"infra,omitempty"`
 	type Compatibility field PlatformBuild string `json:"platformBuild"`
 	type Compatibility struct
+	type HostManifest field Host string `json:"host"`
+	type HostManifest field Requires HostRequires `json:"requires"`
+	type HostManifest field Schema string `json:"schema"`
+	type HostManifest method (T) Validate() error
+	type HostManifest struct
+	type HostRequires field Platform []spi.CapabilityRequirement `json:"platform,omitempty"`
+	type HostRequires field Specific []ModuleRef `json:"specific,omitempty"`
+	type HostRequires struct
+	type InfraSupport field Database []string `json:"database,omitempty"`
+	type InfraSupport field EventBus []string `json:"eventbus,omitempty"`
+	type InfraSupport struct
 	type InstalledIndex []InstalledModule
 	type InstalledIndex method (T) Find(string) (InstalledModule, bool)
 	type InstalledIndex method (T) Validate() error
@@ -203,6 +247,7 @@ package installed // github.com/PlugfyOS/plugfy-common/installed
 	type PlatformSpine field Engine string `json:"engine"`
 	type PlatformSpine field EventBus string `json:"eventBus"`
 	type PlatformSpine field HostOS string `json:"hostOS"`
+	type PlatformSpine field HostOSVersion string `json:"hostOSVersion,omitempty"`
 	type PlatformSpine field Release string `json:"release"`
 	type PlatformSpine field Schema string `json:"schema"`
 	type PlatformSpine field UISchema string `json:"uiSchema"`
@@ -317,6 +362,9 @@ package spi // github.com/PlugfyOS/plugfy-common/spi
 	const KindSecret Kind = "secret"
 	const KindStorage Kind = "storage"
 	const KindVectorStore Kind = "vectorstore"
+	type CapabilityRequirement field Capability string `json:"capability"`
+	type CapabilityRequirement field Version string `json:"version,omitempty"`
+	type CapabilityRequirement struct
 	type CredentialAccessor interface
 	type CredentialAccessor method Get(string) (CredentialPayload, error)
 	type CredentialPayload field Data map[string]string

@@ -50,3 +50,22 @@ type Provider interface {
 	// HealthCheck verifies the provider is reachable and ready.
 	HealthCheck(ctx context.Context) error
 }
+
+// CapabilityRequirement is one declared capability dependency: a capability
+// name plus the SemVer range the dependent admits. It is the cross-cutting
+// shape a host or a module uses to say "I need capability X within version
+// range R", which the version-compatibility matrix resolves by
+// Minimal-Version-Selection against the installed set.
+//
+// It lives on the L1 baseplate (rather than in a single consumer) because both
+// the per-host dependency manifest (installed.HostManifest) and every unit's
+// compatibility{} block speak it, and the pure admissibility check
+// (installed.Admissible) operates on it — so the contract belongs where every
+// side can reuse it verbatim without importing another unit.
+type CapabilityRequirement struct {
+	// Capability is the required capability name (e.g. "storage", "identity").
+	Capability string `json:"capability"`
+	// Version is the SemVer range the requirement admits (e.g. ">=1.0.0").
+	// Empty means "any version of that capability".
+	Version string `json:"version,omitempty"`
+}

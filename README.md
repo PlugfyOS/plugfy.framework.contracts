@@ -3,7 +3,7 @@
 > **L1 — ABI / Contracts (the baseplate of PlugfyOS).** The one module that
 > **every** unit and host links. It imports nobody; it is imported by everyone.
 
-[![Layer](https://img.shields.io/badge/layer-L1_ABI-blue)]() [![Deps](https://img.shields.io/badge/deps-stdlib--only-green)]() [![Version](https://img.shields.io/badge/version-1.1.0-informational)]() [![ABI](https://img.shields.io/badge/ABI-frozen-success)]()
+[![Layer](https://img.shields.io/badge/layer-L1_ABI-blue)]() [![Deps](https://img.shields.io/badge/deps-stdlib--only-green)]() [![Version](https://img.shields.io/badge/version-1.3.0-informational)]() [![ABI](https://img.shields.io/badge/ABI-frozen-success)]()
 
 PlugfyOS is an **AI Operation Framework** — a guest platform that installs into a
 host environment (desktop, server, or cloud tenant) and operates AI agents and
@@ -29,9 +29,9 @@ upper layers knowing which host they landed in.
 
 | Package | Contents |
 |---|---|
-| `spi` | `Provider`, `Lifecycle` (+ `DefaultLifecycle`, `LifecycleContext`), `EventBus`, and the 14 `Kind*` provider categories (model, embedding, vectorstore, storage, identity, connector, notification, secret, eventbus, database, rag, authorizer, registry, api) — the base SPI that units extend |
+| `spi` | `Provider`, `Lifecycle` (+ `DefaultLifecycle`, `LifecycleContext`), `EventBus`, the 14 `Kind*` provider categories (model, embedding, vectorstore, storage, identity, connector, notification, secret, eventbus, database, rag, authorizer, registry, api), and `CapabilityRequirement` (capability + SemVer range) — the base SPI that units extend |
 | `api` | api.v1 route-contribution contract: `RouteSet` → `RouteContribution` → `Route` with the `AuthScope` enum (none/user/admin). Pure data — what a route-provider returns and the API host mounts; imports **no** `net/http` |
-| `installed` | installed-manifest.v1 + system-layout.v1: `InstalledModule`/`InstalledIndex`, the `RenderPath` (declarative/custom, matching the ui-engine enum) and `Compatibility` UX shape, the `PlatformSpine` and `SystemLayout` (the 9 `Area`s), plus parse/validate helpers. The single shape ops-packaging **writes** and platform-api **reads** |
+| `installed` | installed-manifest.v1 + system-layout.v1 + host-manifest.v1: `InstalledModule`/`InstalledIndex`, the `RenderPath` (declarative/custom, matching the ui-engine enum) and `Compatibility` UX shape, the `PlatformSpine` and `SystemLayout` (the 9 `Area`s), the per-host `HostManifest` (capability + specific module requirements), and the **pure** version-compatibility matrix `Admissible` (the 9-axis admissibility over `CompatSpec`+`PlatformSpine`+`CapabilityRequirement`), plus parse/validate helpers. The single shape ops-packaging **writes** and platform-api/the updater **read** |
 | `persistence` | the dialect-aware data plane `SQLDB`/`Tx`/`Rows`/`Row`/`Result` over the stdlib `database/sql`, with `Dialect` (postgres/sqlite), `Rebind` and the `Now`/`JSONExtract`/`Upsert` fragment helpers, plus the namespaced control-plane `RegistryStore`. Contracts only — drivers stay in provider repos |
 | `events` | the `CloudEvent` envelope (CloudEvents 1.0, JSON mode) + 18 canonical `Type*` constants (IAM, runtime, agent, marketplace, jobs, notifications, audit) |
 | `ids` | a lexicographically-sortable ULID generator (Crockford base32, 26-char) with a `Prefixed` helper for kind-tagged IDs |

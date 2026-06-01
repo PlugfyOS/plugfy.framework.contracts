@@ -26,6 +26,12 @@ type PlatformSpine struct {
 	// HostOS is the host operating system family ("linux", "windows",
 	// "darwin").
 	HostOS string `json:"hostOS"`
+	// HostOSVersion is the host OS version the install runs on (e.g. "11" for
+	// Windows 11, "13" for macOS 13). Empty means the host does not report a
+	// version; a versioned hostOS constraint (e.g. "windows>=10") then fails
+	// while a bare-OS constraint ("linux") still matches. Used by [Admissible]
+	// to evaluate versioned hostOS constraints.
+	HostOSVersion string `json:"hostOSVersion,omitempty"`
 	// Edition is the active PlugfyOS edition ("local", "cloud",
 	// "enterprise").
 	Edition string `json:"edition"`
