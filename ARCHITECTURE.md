@@ -50,8 +50,9 @@ zero-domain.
 ## Versioning
 
 The ABI is stable: any break in a public signature is a **major** bump.
-Consumers pin `^1.x`. A golden ABI test freezes the exported signatures so an
-accidental breaking change is caught in CI.
+Consumers pin `^1.x`. A golden ABI test that freezes the exported signatures so
+an accidental breaking change is caught in CI is planned for v1.1.0 (CMN-07);
+today the decouple gate plus `go vet`/`go build` guard the surface.
 
 ## Canonical layer rule
 
