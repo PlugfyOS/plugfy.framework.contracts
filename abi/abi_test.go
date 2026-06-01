@@ -66,6 +66,7 @@ var surfacePackages = []string{
 	"api",
 	"errs",
 	"events",
+	"grpcstatus",
 	"idempotency",
 	"ids",
 	"installed",
