@@ -3,7 +3,7 @@
 > **L1 — ABI / Contracts (the baseplate of PlugfyOS).** The one module that
 > **every** unit and host links. It imports nobody; it is imported by everyone.
 
-[![Layer](https://img.shields.io/badge/layer-L1_ABI-blue)]() [![Deps](https://img.shields.io/badge/deps-stdlib--only-green)]() [![Version](https://img.shields.io/badge/version-1.0.1-informational)]() [![ABI](https://img.shields.io/badge/ABI-frozen-success)]()
+[![Layer](https://img.shields.io/badge/layer-L1_ABI-blue)]() [![Deps](https://img.shields.io/badge/deps-stdlib--only-green)]() [![Version](https://img.shields.io/badge/version-1.1.0-informational)]() [![ABI](https://img.shields.io/badge/ABI-frozen-success)]()
 
 PlugfyOS is an **AI Operation Framework** — a guest platform that installs into a
 host environment (desktop, server, or cloud tenant) and operates AI agents and
@@ -29,7 +29,10 @@ upper layers knowing which host they landed in.
 
 | Package | Contents |
 |---|---|
-| `spi` | `Provider`, `Lifecycle` (+ `DefaultLifecycle`, `LifecycleContext`), `EventBus`, and the 12 `Kind*` provider categories (model, embedding, vectorstore, storage, identity, connector, notification, secret, eventbus, database, rag, authorizer) — the base SPI that units extend |
+| `spi` | `Provider`, `Lifecycle` (+ `DefaultLifecycle`, `LifecycleContext`), `EventBus`, and the 14 `Kind*` provider categories (model, embedding, vectorstore, storage, identity, connector, notification, secret, eventbus, database, rag, authorizer, registry, api) — the base SPI that units extend |
+| `api` | api.v1 route-contribution contract: `RouteSet` → `RouteContribution` → `Route` with the `AuthScope` enum (none/user/admin). Pure data — what a route-provider returns and the API host mounts; imports **no** `net/http` |
+| `installed` | installed-manifest.v1 + system-layout.v1: `InstalledModule`/`InstalledIndex`, the `RenderPath` (declarative/custom, matching the ui-engine enum) and `Compatibility` UX shape, the `PlatformSpine` and `SystemLayout` (the 9 `Area`s), plus parse/validate helpers. The single shape ops-packaging **writes** and platform-api **reads** |
+| `persistence` | the dialect-aware data plane `SQLDB`/`Tx`/`Rows`/`Row`/`Result` over the stdlib `database/sql`, with `Dialect` (postgres/sqlite), `Rebind` and the `Now`/`JSONExtract`/`Upsert` fragment helpers, plus the namespaced control-plane `RegistryStore`. Contracts only — drivers stay in provider repos |
 | `events` | the `CloudEvent` envelope (CloudEvents 1.0, JSON mode) + 18 canonical `Type*` constants (IAM, runtime, agent, marketplace, jobs, notifications, audit) |
 | `ids` | a lexicographically-sortable ULID generator (Crockford base32, 26-char) with a `Prefixed` helper for kind-tagged IDs |
 | `errs` | the canonical error model: 9 classes (validation/unauthorized/forbidden/not_found/conflict/rate_limit/upstream/timeout/internal) → HTTP family, stable reverse-DNS codes, structured details, unwrap-aware `Wrap` |
@@ -102,8 +105,12 @@ adds no module dependency and the decoupling gate still holds.
 
 `plugfy-common` is **L1**: the root of the dependency arrow. It **imports only
 the standard library** and **no** other `PlugfyOS/*` repo. Any `require` in
-`go.mod` or import of a unit **fails CI**. Anything with a domain, a schema,
-persistence, or a concrete backend lives **above**, never here.
+`go.mod` or import of a unit **fails CI**. The bar is *standard library*, not
+*fewer packages*: the `persistence` contract may import `database/sql` (it is
+stdlib), but the concrete **driver** (`pgx`, the SQLite driver) and `net/http`
+are third-party / runtime concerns that live in the provider repos implementing
+these contracts — never here. Anything with a domain, a schema, or a concrete
+backend lives **above**.
 
 ## License
 

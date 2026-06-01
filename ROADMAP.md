@@ -4,8 +4,8 @@
 |---|---|---|
 | **v1.0.0** | Stable, stdlib-only base ABI | CMN-01..06, CMN-08 |
 | **v1.0.1** | Frozen ABI (golden surface test; no ABI change) | CMN-07 |
-| **v1.1.0** | First-class telemetry contract | CMN-09 |
-| **v1.2.0** | Distributed trace over the event bus | CMN-10 |
+| **v1.1.0** | Wave-0 shared contracts: `api` route-contributions, `installed` manifest + layout (render-path/compatibility), `persistence` (`SQLDB`/`RegistryStore` over stdlib `database/sql`), `spi` Kind extension | CMN-11..14 |
+| **v1.2.0** | First-class telemetry contract + distributed trace over the event bus | CMN-09, CMN-10 |
 
 Tied to the master roadmap in
 [`PlugfyOS/plugfy-platform`](https://github.com/PlugfyOS/plugfy-platform). As the

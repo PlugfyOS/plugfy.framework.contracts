@@ -26,6 +26,17 @@ const (
 	KindDatabase     Kind = "database"
 	KindRAG          Kind = "rag"
 	KindAuthorizer   Kind = "authorizer"
+	// KindRegistry categorizes a control-plane registry provider that
+	// persists namespaced key/value records (the installed-module index,
+	// route contributions, capability bindings) behind the persistence
+	// RegistryStore contract. The concrete backend (Postgres, SQLite) lives
+	// in a provider repo; only the SPI category is named here.
+	KindRegistry Kind = "registry"
+	// KindAPI categorizes a route-provider: a unit that contributes HTTP
+	// route declarations (api.RouteContribution) to the platform API host
+	// for mounting. The provider returns pure data — method, path, auth
+	// scope, schema refs — and never imports net/http.
+	KindAPI Kind = "api"
 )
 
 // Provider is the base interface implemented by every pluggable provider.

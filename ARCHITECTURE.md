@@ -18,12 +18,21 @@ the whole framework agrees on, so it must stay small, stable, and dependency-fre
 ## Boundaries
 
 **Does:** define interfaces (the provider SPI, the unit lifecycle, the event bus),
-the `CloudEvent` envelope, and pure utilities (`ids` / `errs` / `idempotency` /
-`resilience`). Nothing more.
+the `CloudEvent` envelope, the pure-data contracts shared across the polyrepo —
+`api` (api.v1 route contributions), `installed` (installed-manifest.v1 +
+system-layout.v1, including the UX render-path/compatibility shape) and
+`persistence` (the dialect-aware `SQLDB`/`Tx` surface over the standard library's
+`database/sql`, plus the namespaced `RegistryStore`) — and pure utilities
+(`ids` / `errs` / `idempotency` / `resilience`). Nothing more.
 
-**Does not:** persistence, HTTP, concrete backends (Postgres / NATS / S3), domain
-logic, UI. Those live in the layers above — drivers (L2), runtime (L3), kernel
-(L4), the API host (L6), and system services (L7).
+**Does not:** concrete backends (Postgres / SQLite / NATS / S3), database
+**drivers** (`pgx`, the SQLite driver), HTTP servers/routers (`net/http`), domain
+logic, or UI. The `persistence` package names the SQL *contract* over the stdlib
+`database/sql`; the driver and the network wiring live in the provider repos that
+implement `spi.KindDatabase` / `spi.KindRegistry`. Likewise `api` declares routes
+as data and never imports `net/http`. Concrete backends and runtimes live in the
+layers above — drivers (L2), runtime (L3), kernel (L4), the API host (L6), and
+system services (L7).
 
 ## Dependency inversion
 
@@ -45,14 +54,21 @@ L2 platform-provider-*  ──implements──►  spi.* (here)  ◄──define
 2. any package imports another `PlugfyOS/*` repo.
 
 This preserves the invariant that the root of the dependency tree is stable and
-zero-domain.
+zero-domain. The bar is *standard-library only*, not *fewer packages*:
+`database/sql` is part of the standard library, so the `persistence` contract may
+import it. The forbidden surface is third-party modules — concrete database
+**drivers** (`pgx`, the SQLite driver) and HTTP machinery (`net/http` in `api`) —
+which would add a `require` to `go.mod` and trip rule 1. Those stay in the
+provider repos that implement the contracts.
 
 ## Versioning
 
 The ABI is stable: any break in a public signature is a **major** bump.
-Consumers pin `^1.x`. A golden ABI test that freezes the exported signatures so
-an accidental breaking change is caught in CI is planned for v1.1.0 (CMN-07);
-today the decouple gate plus `go vet`/`go build` guard the surface.
+Consumers pin `^1.x`. A golden ABI test (`abi/`, frozen in `testdata/api.golden`)
+locks every exported signature, so an accidental breaking change is caught in CI;
+a deliberate, additive extension regenerates the golden in the same review (e.g.
+the v1.1.0 `api` / `installed` / `persistence` contracts were a purely additive
+golden diff). The decouple gate plus `go vet`/`go build` guard the rest.
 
 ## Canonical layer rule
 
