@@ -15,6 +15,12 @@ jobs:
         run: go vet ./...
       - name: Test
         run: go test -race -coverprofile=coverage.out ./...
+      - name: Golden ABI freeze
+        # Fails when the exported public API surface drifts from
+        # abi/testdata/api.golden. A failure here means a (possibly breaking)
+        # change to a public signature; review it, then regenerate the golden
+        # intentionally with `go test ./abi -run TestGoldenABI -update`.
+        run: go test ./abi -run TestGoldenABI -count=1
       - name: Build
         run: go build ./...
       - name: Decoupling gate

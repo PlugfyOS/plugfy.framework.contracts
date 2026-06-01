@@ -3,7 +3,8 @@
 | Milestone | Goal | Items |
 |---|---|---|
 | **v1.0.0** | Stable, stdlib-only base ABI | CMN-01..06, CMN-08 |
-| **v1.1.0** | First-class telemetry contract + frozen ABI | CMN-07, CMN-09 |
+| **v1.0.1** | Frozen ABI (golden surface test; no ABI change) | CMN-07 |
+| **v1.1.0** | First-class telemetry contract | CMN-09 |
 | **v1.2.0** | Distributed trace over the event bus | CMN-10 |
 
 Tied to the master roadmap in

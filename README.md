@@ -3,7 +3,7 @@
 > **L1 — ABI / Contracts (the baseplate of PlugfyOS).** The one module that
 > **every** unit and host links. It imports nobody; it is imported by everyone.
 
-[![Layer](https://img.shields.io/badge/layer-L1_ABI-blue)]() [![Deps](https://img.shields.io/badge/deps-stdlib--only-green)]() [![Version](https://img.shields.io/badge/version-1.0.0-informational)]()
+[![Layer](https://img.shields.io/badge/layer-L1_ABI-blue)]() [![Deps](https://img.shields.io/badge/deps-stdlib--only-green)]() [![Version](https://img.shields.io/badge/version-1.0.1-informational)]() [![ABI](https://img.shields.io/badge/ABI-frozen-success)]()
 
 PlugfyOS is an **AI Operation Framework** — a guest platform that installs into a
 host environment (desktop, server, or cloud tenant) and operates AI agents and
@@ -76,6 +76,27 @@ GOWORK=off go build ./...
 GOWORK=off go test -race ./...
 bash scripts/decouple-check.sh   # enforces stdlib-only + zero unit imports
 ```
+
+## ABI stability (the frozen public surface)
+
+Because every unit pins `^1.x` of this baseplate, an accidental change to an
+exported signature would silently break the whole polyrepo. The `abi` package
+guards against that: `abi.TestGoldenABI` snapshots the entire exported public
+surface — types, struct fields (with JSON tags), interface method sets, function
+and method signatures, and typed constant values — of every public package into
+the committed golden file `abi/testdata/api.golden`, and fails CI on any drift.
+
+A failing `Golden ABI freeze` step is the signal that a public signature changed.
+If the change is intentional and you have weighed its backward-compatibility
+impact (a break warrants a major-version bump), regenerate the golden and commit
+it alongside the change:
+
+```bash
+GOWORK=off go test ./abi -run TestGoldenABI -update
+```
+
+The test is stdlib-only (`go/ast`, `go/parser`, `go/types`, `go/importer`), so it
+adds no module dependency and the decoupling gate still holds.
 
 ## Rule (non-negotiable)
 
