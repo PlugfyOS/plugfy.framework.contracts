@@ -25,3 +25,27 @@ jobs:
         run: go build ./...
       - name: Decoupling gate
         run: bash scripts/decouple-check.sh
+
+  gowork-drift-guard:
+    # Hardening (plugfy-platform#52): go.work can mask an incomplete go.mod/go.sum
+    # so a standalone build/CI silently drifts. Resolve the way a fresh clone
+    # would (GOWORK=off, no workspace), prove `go mod tidy` is a no-op, and that
+    # the module builds on its own. Fail the build on any drift.
+    name: GOWORK drift guard
+    runs-on: ubuntu-latest
+    env:
+      GOWORK: "off"
+      GOPRIVATE: github.com/PlugfyOS/*
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.25", cache: true }
+      - name: Private modules (PlugfyOS org)
+        run: git config --global url."https://x-access-token:${{ secrets.GOPRIVATE_TOKEN }}@github.com/".insteadOf "https://github.com/"
+      - name: go mod tidy must be a no-op (no go.work masking)
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum \
+            || { echo "::error::go.mod/go.sum drift: 'GOWORK=off go mod tidy' changed them. Run it locally and commit."; exit 1; }
+      - name: Standalone build
+        run: go build ./...
