@@ -22,6 +22,8 @@ Items from v1.0.0 onward. Labels: `[type][priority][size]`.
 | CMN-09 | First-class telemetry contract on `LifecycleContext` (`Logger`/`Tracer` golden coverage) | FEAT | P1 | M | v1.1.0 |
 | CMN-10 | `traceparent` as a `CloudEvent` extension (cross-unit distributed trace) | FEAT | P2 | M | v1.2.0 |
 
-> Open debts are mirrored here for readability; each is filed as a GitHub Issue
-> (label `tech-debt`) and milestoned to its target release, per the
+> Open debts are mirrored here for readability; GitHub Issues remain the source
+> of truth. CMN-07 is filed (label `tech-debt`, milestone v1.1.0); CMN-09 and
+> CMN-10 are planned for their target releases and are filed as their milestones
+> open. Tracking follows the
 > [Delivery Standard](https://github.com/PlugfyOS/plugfy-platform/blob/main/docs/DELIVERY-STANDARD.md).

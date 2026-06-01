@@ -5,6 +5,11 @@
 
 [![Layer](https://img.shields.io/badge/layer-L1_ABI-blue)]() [![Deps](https://img.shields.io/badge/deps-stdlib--only-green)]() [![Version](https://img.shields.io/badge/version-1.0.0-informational)]()
 
+PlugfyOS is an **AI Operation Framework** — a guest platform that installs into a
+host environment (desktop, server, or cloud tenant) and operates AI agents and
+capabilities on top of it. `plugfy-common` is the contract layer at the bottom
+of that framework: the normative interfaces everything else agrees on.
+
 ## What it is
 
 `plugfy-common` publishes the generic, stable primitives that hold up the
@@ -14,14 +19,22 @@ It is **stdlib-only** by design: keeping the root of the dependency tree free of
 external modules guarantees that the baseplate never drags a domain, a backend,
 or a heavyweight dependency into everything above it.
 
+These are **contracts, not implementations**. The micro-kernel core knows only
+this module; capabilities, drivers, and apps are self-contained units that
+implement these interfaces and self-register at runtime — they are never
+compiled into the core. Because the framework is a *guest* in its host, every
+external dependency (model, store, identity, event bus, …) sits behind one of
+these SPIs so the concrete backend can be selected per edition without the
+upper layers knowing which host they landed in.
+
 | Package | Contents |
 |---|---|
-| `spi` | `Provider`, `Lifecycle` (+ `DefaultLifecycle`, `LifecycleContext`), `EventBus`, and the `Kind*` constants — the base SPI that units extend |
-| `events` | the `CloudEvent` envelope (CloudEvents 1.0, JSON mode) + canonical event-type constants |
-| `ids` | a lexicographically-sortable ULID generator (Crockford base32) |
-| `errs` | the canonical error model (class → HTTP family, stable codes, details, wrap) |
-| `idempotency` | the `Store` contract + an in-memory implementation (replay protection) |
-| `resilience` | `Breaker`, `RetryPolicy`, `Bulkhead`, composed into a single `Guard` |
+| `spi` | `Provider`, `Lifecycle` (+ `DefaultLifecycle`, `LifecycleContext`), `EventBus`, and the 12 `Kind*` provider categories (model, embedding, vectorstore, storage, identity, connector, notification, secret, eventbus, database, rag, authorizer) — the base SPI that units extend |
+| `events` | the `CloudEvent` envelope (CloudEvents 1.0, JSON mode) + 18 canonical `Type*` constants (IAM, runtime, agent, marketplace, jobs, notifications, audit) |
+| `ids` | a lexicographically-sortable ULID generator (Crockford base32, 26-char) with a `Prefixed` helper for kind-tagged IDs |
+| `errs` | the canonical error model: 9 classes (validation/unauthorized/forbidden/not_found/conflict/rate_limit/upstream/timeout/internal) → HTTP family, stable reverse-DNS codes, structured details, unwrap-aware `Wrap` |
+| `idempotency` | the `Store` contract + an in-memory implementation (`MemStore`) for replay protection, keyed on (subject, path, idempotency-key) |
+| `resilience` | `Breaker` (circuit breaker), `RetryPolicy` (capped exponential backoff), `Bulkhead` (bounded concurrency), composed into a single `Guard` |
 
 ## How to consume
 

@@ -85,9 +85,9 @@ type LifecycleContext interface {
 	Credentials() CredentialAccessor
 }
 
-// TenantRef identifies the tenant scope of an execution. Workspace is
-// reserved for future use (Plugfy V2 had a Workspace level between Org
-// and Project; Plugfy OS currently collapses it into Project).
+// TenantRef identifies the tenant scope of an execution: an organization
+// and a project within it. These two levels scope every credential, state,
+// and audit lookup the hooks perform.
 type TenantRef struct {
 	OrgID     string
 	ProjectID string

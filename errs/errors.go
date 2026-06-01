@@ -1,4 +1,4 @@
-// Package errs defines the canonical error model for the Plugfy OS
+// Package errs defines the canonical error model for the PlugfyOS
 // platform: a small, stable set of error classes mapped to HTTP statuses,
 // with structured details and trace correlation. All API handlers and
 // platform services SHOULD return errors that can be classified through
