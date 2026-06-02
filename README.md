@@ -1,19 +1,19 @@
 # plugfy-common
 
-> **L1 — ABI / Contracts (the baseplate of PlugfyOS).** The one module that
+> **L1 — ABI / Contracts (the baseplate of the Plugfy Framework).** The one module that
 > **every** unit and host links. It imports nobody; it is imported by everyone.
 
 [![Layer](https://img.shields.io/badge/layer-L1_ABI-blue)]() [![Deps](https://img.shields.io/badge/deps-stdlib--only-green)]() [![Version](https://img.shields.io/badge/version-1.3.0-informational)]() [![ABI](https://img.shields.io/badge/ABI-frozen-success)]()
 
-PlugfyOS is an **AI Operation Framework** — a guest platform that installs into a
-host environment (desktop, server, or cloud tenant) and operates AI agents and
-capabilities on top of it. `plugfy-common` is the contract layer at the bottom
-of that framework: the normative interfaces everything else agrees on.
+**Plugfy Framework** is an **AI Operation Framework** — a guest platform that
+installs into a host environment (desktop, server, or cloud tenant) and operates
+AI agents and capabilities on top of it. `plugfy-common` is the contract layer at
+the bottom of that framework: the normative interfaces everything else agrees on.
 
 ## What it is
 
 `plugfy-common` publishes the generic, stable primitives that hold up the
-PlugfyOS micro-kernel — the provider SPI, the unit lifecycle, the event-bus
+Plugfy Framework micro-kernel — the provider SPI, the unit lifecycle, the event-bus
 contract, identifiers, the canonical error model, idempotency, and resilience.
 It is **stdlib-only** by design: keeping the root of the dependency tree free of
 external modules guarantees that the baseplate never drags a domain, a backend,
