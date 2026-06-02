@@ -1,5 +1,5 @@
 // Package installed defines installed-manifest.v1 and system-layout.v1: the
-// single shape ops-packaging WRITES when it materializes a PlugfyOS install and
+// single shape ops-packaging WRITES when it materializes a Plugfy install and
 // platform-api READS to serve the running system's composition.
 //
 // It is also the home of the render-path and compatibility contract surfaced to
@@ -102,7 +102,7 @@ type Compatibility struct {
 	// HostOS is the host operating system family the module supports
 	// (e.g. "linux", "windows", "darwin"). Empty means OS-agnostic.
 	HostOS string `json:"hostOS,omitempty"`
-	// Edition is the PlugfyOS edition the module targets
+	// Edition is the Plugfy edition the module targets
 	// (e.g. "local", "cloud", "enterprise").
 	Edition string `json:"edition,omitempty"`
 	// Infra is the infrastructure profile the module requires

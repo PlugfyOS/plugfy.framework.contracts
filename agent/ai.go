@@ -1,4 +1,4 @@
-// Package agent is the CANONICAL, public home of the PlugfyOS AI/Agent-Hub
+// Package agent is the CANONICAL, public home of the Plugfy AI/Agent-Hub
 // contracts: the Assistant/chat surface (Run request + streamed events) and the
 // Agent Hub catalog (the twelve declarative agent primitives plus the resolver
 // data plane). These are pure declaration-only value types and interfaces —

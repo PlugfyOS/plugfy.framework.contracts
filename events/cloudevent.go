@@ -1,4 +1,4 @@
-// Package events defines the CloudEvents 1.0 envelope used across the PlugfyOS
+// Package events defines the CloudEvents 1.0 envelope used across the Plugfy
 // event bus (NATS JetStream in production, in-process locally) and the canonical
 // event type constants. The bus SPI that carries these is [spi.EventBus]; the
 // platform layer model lives in PlugfyOS/plugfy-platform.
@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// SpecVersion is the CloudEvents spec version emitted by PlugfyOS.
+// SpecVersion is the CloudEvents spec version emitted by Plugfy.
 const SpecVersion = "1.0"
 
 // CloudEvent is a CloudEvents 1.0 (JSON mode) envelope.

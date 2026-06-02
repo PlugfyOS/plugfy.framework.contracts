@@ -1,5 +1,5 @@
 // Package persistence defines the control-plane and data-plane storage
-// contracts of PlugfyOS: a thin, dialect-aware abstraction over the standard
+// contracts of Plugfy: a thin, dialect-aware abstraction over the standard
 // library's database/sql plus a namespaced key/value RegistryStore.
 //
 // database/sql is part of the Go standard library, so depending on it keeps the

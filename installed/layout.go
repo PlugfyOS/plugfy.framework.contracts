@@ -32,7 +32,7 @@ type PlatformSpine struct {
 	// while a bare-OS constraint ("linux") still matches. Used by [Admissible]
 	// to evaluate versioned hostOS constraints.
 	HostOSVersion string `json:"hostOSVersion,omitempty"`
-	// Edition is the active PlugfyOS edition ("local", "cloud",
+	// Edition is the active Plugfy edition ("local", "cloud",
 	// "enterprise").
 	Edition string `json:"edition"`
 	// EventBus is the active event-bus backend ("inproc", "nats", …).
@@ -57,7 +57,7 @@ func (s PlatformSpine) Validate() error {
 	return nil
 }
 
-// Area names a logical directory of a PlugfyOS install rooted at
+// Area names a logical directory of a Plugfy install rooted at
 // [SystemLayout.Root]. The set of areas is fixed: ops-packaging materializes
 // exactly these directories and platform-api resolves paths through them.
 type Area string

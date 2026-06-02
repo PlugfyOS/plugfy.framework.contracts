@@ -1,7 +1,7 @@
 // Package abi holds the golden Application Binary Interface (ABI) test for
 // plugfy-common.
 //
-// plugfy-common is the L1 baseplate of the PlugfyOS polyrepo: every other unit
+// plugfy-common is the L1 baseplate of the Plugfy polyrepo: every other unit
 // pins "^1.x" of it, so an accidental breaking change to an exported signature
 // in spi, events, errs, idempotency, ids, or resilience silently breaks the
 // whole platform until each consumer fails to build downstream. This test

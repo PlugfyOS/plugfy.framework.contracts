@@ -1,6 +1,6 @@
 # Architecture — plugfy-common
 
-PlugfyOS is an **AI Operation Framework** — a guest platform that installs into a
+Plugfy Framework is an **Operation Framework** — a guest platform that installs into a
 host (desktop, server, or cloud tenant) and operates AI agents and capabilities
 on top of it. Its runtime is a domain-agnostic micro-kernel that knows only
 generic contracts; everything domain-specific is a self-registering unit above.

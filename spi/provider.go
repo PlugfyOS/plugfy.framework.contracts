@@ -1,4 +1,4 @@
-// Package spi defines the Service Provider Interfaces (SPIs) of the PlugfyOS
+// Package spi defines the Service Provider Interfaces (SPIs) of the Plugfy
 // platform. Every pluggable external dependency (models, embeddings, vector
 // store, object storage, identity, connectors, notifications, secrets, event
 // bus) is abstracted behind one of these interfaces so that the concrete

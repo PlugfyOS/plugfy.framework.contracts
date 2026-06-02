@@ -1,5 +1,5 @@
 // Package api defines the api.v1 route-contribution contract: the pure-data
-// description of the HTTP routes a unit contributes to the PlugfyOS API host.
+// description of the HTTP routes a unit contributes to the Plugfy API host.
 //
 // This is a declaration, not an implementation. A route-provider (spi.KindAPI)
 // returns a [RouteSet] of [RouteContribution]s; the platform API host (L6)
