@@ -44,6 +44,54 @@ func (r RenderPath) Valid() bool {
 	}
 }
 
+// Form declares HOW the platform loads and runs a module's executable payload —
+// the multi-modal loader axis. The micro-kernel dispatches on it: a process form
+// is a separate binary the supervisor spawns and the gateway reaches over gRPC
+// (loopback locally, network when distributed); wasm and lib forms run
+// IN-PROCESS behind the gateway's invoke->route adapter (a sandboxed wazero
+// module, or a dynamically loaded native library) without ever being compiled
+// into the platform binary; data carries no code (its UI is rendered
+// declaratively). In every form the payload is a SEPARATE installed artifact
+// under the module's version directory (bin/ | wasm/ | lib/ | uischema/) — the
+// Windows-like "nothing compiled together" invariant.
+type Form string
+
+const (
+	// FormProcess — a separate executable (bin/<name>) the supervisor spawns,
+	// reached over gRPC. This is the default a record falls back to when it omits
+	// `form`, so manifests written before this field resolve byte-identically.
+	FormProcess Form = "process"
+	// FormWasm — a sandboxed WebAssembly module (wasm/<name>.wasm) loaded in-proc
+	// via wazero and reached through the in-process invoke->route adapter.
+	FormWasm Form = "wasm"
+	// FormLib — a dynamically loaded native library (lib/<name>.{so,dll,dylib})
+	// reached through the same in-process invoke->route adapter.
+	FormLib Form = "lib"
+	// FormData — a code-less declarative payload (uischema/); the UI engine
+	// renders it and the supervisor never launches anything for it.
+	FormData Form = "data"
+)
+
+// Or returns the form, treating the empty value as the default [FormProcess] so a
+// record that omits `form` behaves exactly as it did before the field existed.
+func (f Form) Or() Form {
+	if f == "" {
+		return FormProcess
+	}
+	return f
+}
+
+// Valid reports whether the form is empty (which defaults to process) or one of
+// the known tokens.
+func (f Form) Valid() bool {
+	switch f {
+	case "", FormProcess, FormWasm, FormLib, FormData:
+		return true
+	default:
+		return false
+	}
+}
+
 // Compatibility records the environment a module was built and validated
 // against. The API host compares it to the running [PlatformSpine] to flag
 // modules that may not be safe to run after a platform upgrade or host change.
@@ -111,6 +159,10 @@ type InstalledModule struct {
 	Channel string `json:"channel"`
 	// RenderPath declares how the module's UI is rendered.
 	RenderPath RenderPath `json:"renderPath"`
+	// Form declares HOW the platform loads the module's executable payload — the
+	// multi-modal loader axis (process | wasm | lib | data). Empty defaults to
+	// [FormProcess], so records written before this field resolve unchanged.
+	Form Form `json:"form,omitempty"`
 	// Compatibility records the environment the module was built against.
 	Compatibility Compatibility `json:"compatibility"`
 	// Pinned, when true, freezes the module at this version: the updater
@@ -136,6 +188,9 @@ func (m InstalledModule) Validate() error {
 	}
 	if !m.RenderPath.Valid() {
 		return fmt.Errorf("installed: module %q has unknown renderPath %q", m.ID, m.RenderPath)
+	}
+	if !m.Form.Valid() {
+		return fmt.Errorf("installed: module %q has unknown form %q", m.ID, m.Form)
 	}
 	for i, d := range m.Deps {
 		if strings.TrimSpace(d.ID) == "" {

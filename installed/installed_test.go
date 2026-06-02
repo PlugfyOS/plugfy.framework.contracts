@@ -81,6 +81,57 @@ func TestRenderPathTokens(t *testing.T) {
 	}
 }
 
+func TestFormTokensAndDefault(t *testing.T) {
+	if string(FormProcess) != "process" || string(FormWasm) != "wasm" ||
+		string(FormLib) != "lib" || string(FormData) != "data" {
+		t.Fatalf("form tokens drifted: %q %q %q %q", FormProcess, FormWasm, FormLib, FormData)
+	}
+	// Empty defaults to process so records written before the field resolve unchanged.
+	if Form("").Or() != FormProcess {
+		t.Errorf("empty form Or() = %q, want %q", Form("").Or(), FormProcess)
+	}
+	if FormWasm.Or() != FormWasm {
+		t.Errorf("wasm Or() = %q, want wasm", FormWasm.Or())
+	}
+	for _, f := range []Form{"", FormProcess, FormWasm, FormLib, FormData} {
+		if !f.Valid() {
+			t.Errorf("form %q reported invalid", f)
+		}
+	}
+	if Form("bogus").Valid() {
+		t.Error("unknown form reported valid")
+	}
+}
+
+func TestInstalledModuleFormBackwardCompat(t *testing.T) {
+	// A manifest written before the `form` field existed (no "form" key) must
+	// parse and default to process — the omit-default backward-compat contract.
+	const legacy = `[{"id":"com.plugfy.x","name":"X","version":"1.0.0","renderPath":"custom","compatibility":{"platformBuild":"1.0.0"},"pinned":false}]`
+	ix, err := ParseIndex(strings.NewReader(legacy))
+	if err != nil {
+		t.Fatalf("legacy (no form) manifest rejected: %v", err)
+	}
+	if got := ix[0].Form.Or(); got != FormProcess {
+		t.Errorf("legacy form default = %q, want %q", got, FormProcess)
+	}
+	// A wasm record validates, round-trips, and emits the wire token.
+	m := sampleModule()
+	m.Form = FormWasm
+	if err := m.Validate(); err != nil {
+		t.Fatalf("wasm module rejected: %v", err)
+	}
+	b, _ := json.Marshal(m)
+	if !strings.Contains(string(b), `"form":"wasm"`) {
+		t.Errorf("wasm form not emitted on the wire: %s", b)
+	}
+	// An unknown form is rejected.
+	bad := sampleModule()
+	bad.Form = "bogus"
+	if err := bad.Validate(); err == nil {
+		t.Error("expected unknown form to be rejected")
+	}
+}
+
 func TestInstalledModuleValidate(t *testing.T) {
 	if err := sampleModule().Validate(); err != nil {
 		t.Fatalf("valid module rejected: %v", err)
