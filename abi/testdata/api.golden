@@ -171,6 +171,10 @@ package installed // github.com/PlugfyOS/plugfy-common/installed
 	const ChannelStable Channel = "stable"
 	const Data Area = "data"
 	const Drivers Area = "drivers"
+	const FormData Form = "data"
+	const FormLib Form = "lib"
+	const FormProcess Form = "process"
+	const FormWasm Form = "wasm"
 	const HostManifestSchema untyped string = "host-manifest.v1"
 	const Logs Area = "logs"
 	const RenderCustom RenderPath = "custom"
@@ -208,6 +212,9 @@ package installed // github.com/PlugfyOS/plugfy-common/installed
 	type Compatibility field Infra string `json:"infra,omitempty"`
 	type Compatibility field PlatformBuild string `json:"platformBuild"`
 	type Compatibility struct
+	type Form method (T) Or() Form
+	type Form method (T) Valid() bool
+	type Form string
 	type HostManifest field Host string `json:"host"`
 	type HostManifest field Requires HostRequires `json:"requires"`
 	type HostManifest field Schema string `json:"schema"`
@@ -226,6 +233,7 @@ package installed // github.com/PlugfyOS/plugfy-common/installed
 	type InstalledModule field Channel string `json:"channel"`
 	type InstalledModule field Compatibility Compatibility `json:"compatibility"`
 	type InstalledModule field Deps []ModuleRef `json:"deps,omitempty"`
+	type InstalledModule field Form Form `json:"form,omitempty"`
 	type InstalledModule field Hash string `json:"hash"`
 	type InstalledModule field ID string `json:"id"`
 	type InstalledModule field Layer string `json:"layer"`
