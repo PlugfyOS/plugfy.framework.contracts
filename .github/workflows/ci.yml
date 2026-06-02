@@ -7,6 +7,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Framework-standalone guard (no Framework->Platform imports)
+        # Framework-standalone invariant: a FRAMEWORK repo must never depend on a
+        # PLATFORM module. Fail if any Go source or go.mod imports a Platform module
+        # path: github.com/PlugfyOS/{ui-shell,platform-api,app-*,system-*,theme-plugfy,ops-*}.
+        run: |
+          if grep -rEn 'github\.com/PlugfyOS/(ui-shell|platform-api|app-|system-|theme-plugfy|ops-)' \
+               --include='*.go' --include='go.mod' . ; then
+            echo "::error::Framework-standalone invariant violated: a Platform module path is imported. Framework repos must not depend on github.com/PlugfyOS/{ui-shell,platform-api,app-*,system-*,theme-plugfy,ops-*}."
+            exit 1
+          fi
+          echo "OK: no Framework->Platform imports"
       - uses: actions/setup-go@v5
         with: { go-version: "1.25", cache: true }
       - name: Format
