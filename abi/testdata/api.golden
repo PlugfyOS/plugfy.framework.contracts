@@ -14,6 +14,7 @@ package api // github.com/PlugfyOS/plugfy-common/api
 	type Route field Path string `json:"path"`
 	type Route field RequestSchemaRef string `json:"requestSchemaRef,omitempty"`
 	type Route field ResponseSchemaRef string `json:"responseSchemaRef,omitempty"`
+	type Route field Streaming bool `json:"streaming,omitempty"`
 	type Route field Summary string `json:"summary,omitempty"`
 	type Route struct
 	type RouteContribution field BasePath string `json:"basePath"`

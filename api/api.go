@@ -59,6 +59,11 @@ type Route struct {
 	// ResponseSchemaRef references the JSON-schema component describing the
 	// success response body. Empty when the route returns no body.
 	ResponseSchemaRef string `json:"responseSchemaRef,omitempty"`
+	// Streaming marks a route whose response is a server-sent-event
+	// (text/event-stream) stream; the gateway dispatches it via
+	// supervisorv1.InvokeStream and relays frames, instead of the unary
+	// Invoke.
+	Streaming bool `json:"streaming,omitempty"`
 }
 
 // RouteContribution is one logical group of routes a unit contributes, sharing
