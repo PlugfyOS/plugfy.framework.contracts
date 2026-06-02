@@ -5,9 +5,11 @@
 
 [![Layer](https://img.shields.io/badge/layer-L1_ABI-blue)]() [![Deps](https://img.shields.io/badge/deps-stdlib--only-green)]() [![Version](https://img.shields.io/badge/version-1.3.0-informational)]() [![ABI](https://img.shields.io/badge/ABI-frozen-success)]()
 
-**Plugfy Framework** is an **AI Operation Framework** — a guest platform that
-installs into a host environment (desktop, server, or cloud tenant) and operates
-AI agents and capabilities on top of it. `plugfy-common` is the contract layer at
+**Plugfy Framework** is an **Operation Framework** — an operational foundation
+with an extensible set of first-class capabilities (Governance, AI, Agents,
+Apps, UI, Security, Operations/Processes, Data/Persistence, …) that installs
+into a host environment (desktop, server, or cloud tenant) and operates those
+capabilities on top of it. `plugfy-common` is the contract layer at
 the bottom of that framework: the normative interfaces everything else agrees on.
 
 ## What it is
