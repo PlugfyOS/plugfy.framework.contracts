@@ -6,7 +6,7 @@ package spi
 // ParamDef.Validate and method/unit Visibility predicates.
 //
 // It is declared here, on the L1 baseplate (commons), so that consumers in the
-// DEFINITION layer (notably the future core.Runner under spi/core) can validate
+// DEFINITION layer (notably core.Runner under spi/core) can validate
 // inputs and gate visibility by depending on this ABSTRACTION alone, without
 // importing any EXECUTION/OPERATION engine. The CEL-backed IMPLEMENTATION is
 // injected at the composition root (the same sandboxed engine the pipeline

@@ -10,7 +10,7 @@
 //
 // Everything execution-cross-cutting — progress, events, errors, finalization,
 // retries, timeouts, validation — lives in the UnitContext the brick is handed
-// and in a runtime policy wrapper (the future core.Runner) that sits OUTSIDE the
+// and in the runtime policy wrapper (core.Runner) that sits OUTSIDE the
 // brick, driven by what the brick DECLARES in its UnitDescriptor. The author of a
 // Unit writes a Describe() literal and one method body; they write nothing for
 // retries, finalization, progress plumbing, or event fan-out.
@@ -50,12 +50,14 @@
 // self-contained, execution-only contract; the richness lives in the layers
 // composed on top.
 //
-// # The brick (this package, Phase 0)
+// # The brick (this package)
 //
 // This package is layer 1 of the three-layer stack (DEFINITION -> EXECUTION ->
-// OPERATION) and its contract HOME is commons. It is PURE ADDITIVE: nothing in
-// the platform consumes it yet (Phase 1 promotes the wrapper; Phase 2+ migrate
-// callers). It REUSES, not reinvents, the existing commons surfaces:
+// OPERATION) and its contract HOME is plugfy.framework.contracts. It is the
+// execution contract CONSUMED by the runtime Runner (runner.Runner validates the
+// resolved input VALUES against MethodDef.Params on every Invoke) and by the
+// pipeline engine (a Module node drives a core.Unit method through that Runner).
+// It REUSES, not reinvents, the surrounding contract surfaces:
 //
 //   - spi.Provider          — embedded by Unit (Name/Kind/Capabilities/HealthCheck),
 //     so the existing registry/discovery/health/capability machinery works
@@ -66,7 +68,7 @@
 //   - resilience.{Guard,Breaker,Bulkhead,RetryPolicy} — the wrapper reuses these
 //     verbatim; this package declares a DECLARATIVE RetryPolicy the wrapper maps
 //     onto them.
-//   - spi.Evaluator         — the CEL port the future core.Runner uses to evaluate
+//   - spi.Evaluator         — the CEL port core.Runner uses to evaluate
 //     ParamDef.Validate before Invoke (platform-layer visibility/access predicates
 //     reuse the same port outside the core).
 //

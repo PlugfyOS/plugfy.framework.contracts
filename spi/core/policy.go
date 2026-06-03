@@ -3,7 +3,7 @@ package core
 import "time"
 
 // RetryPolicy is the DECLARED retry policy a MethodDef (or the unit-wide
-// DefaultPolicy) surfaces. The future core.Runner maps it onto the canonical
+// DefaultPolicy) surfaces. core.Runner maps it onto the canonical
 // resilience.Guard (bulkhead -> retry -> breaker) and resilience.RetryPolicy —
 // it is a declarative mirror, not a second engine. Unlike the imperative
 // resilience.RetryPolicy (whose Retryable is a func(error) bool), this one is
