@@ -15,6 +15,19 @@
 // Unit writes a Describe() literal and one method body; they write nothing for
 // retries, finalization, progress plumbing, or event fan-out.
 //
+// # Typed IO: scalars, objects, and arrays
+//
+// A method DECLARES its input and output shape as []ParamDef. ParamType is a
+// closed set: the scalars (boolean/string/integer/float/enum), two structured
+// tags — object (an unordered keyed map) and array (an ordered list) — and secret.
+// A structured param carries an OPTIONAL, recursive element schema on ParamDef:
+// an array's element shape in Items, an object's named fields in Fields. These are
+// pure declarations — the runtime validator reads them to check a value's shape
+// before Invoke and the UI reads them to render a typed editor; the core itself
+// never executes them. Recursion composes arbitrarily (array-of-objects,
+// object-of-arrays), so a brick fully describes structured IO without a separate
+// schema language or a platform type.
+//
 // # What the core does NOT know
 //
 // The core is PURE: it imports NO platform/foundation type and carries ONLY what

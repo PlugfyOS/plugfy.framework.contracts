@@ -21,11 +21,15 @@ const (
 )
 
 // ParamType is the closed parameter type set for a method's typed IO. The base
-// set (boolean/string/integer/float/enum) plus object/secret is intrinsic to a
-// method's input/output. The presentation-oriented values (color/multiline/sdui)
-// are a harmless declaration on the param: the core never interprets them; the
-// UI FOUNDATION reads them when it renders the param. The tag itself stays here
-// because it is part of how a method DECLARES its IO; the meaning is layered on.
+// set (boolean/string/integer/float/enum) plus object/array/secret is intrinsic
+// to a method's input/output. The presentation-oriented values (color/multiline/
+// sdui) are a harmless declaration on the param: the core never interprets them;
+// the UI FOUNDATION reads them when it renders the param. The tag itself stays
+// here because it is part of how a method DECLARES its IO; the meaning is layered
+// on. The two structured tags carry an OPTIONAL element shape on ParamDef:
+// ParamObject reads ParamDef.Fields (named field schemas), ParamArray reads
+// ParamDef.Items (the element schema) — both pure, recursive, read by the runtime
+// validator and the UI, never executed by the core.
 type ParamType string
 
 const (
@@ -37,8 +41,11 @@ const (
 	ParamColor     ParamType = "color"
 	ParamMultiline ParamType = "multiline"
 	ParamSDUI      ParamType = "sdui"
-	// object and secret extend the set for invocation IO:
+	// object, array, and secret extend the set for invocation IO. object is an
+	// unordered keyed map (field shape via Fields); array is an ordered list
+	// (element shape via Items):
 	ParamObject ParamType = "object"
+	ParamArray  ParamType = "array"
 	ParamSecret ParamType = "secret"
 )
 
@@ -106,10 +113,18 @@ type ParamDef struct {
 	Key         string
 	Label       string
 	Description string
-	Type        ParamType // closed type set + object/secret
+	Type        ParamType // closed type set + object/array/secret
 	Default     any
 	Options     []string // enum
 	Required    bool
 	Secret      bool   // routed to the secret store, never plaintext, masked in frames
 	Validate    string // OPTIONAL CEL predicate over the value (sandboxed) — closes the validation gap
+
+	// Items is the OPTIONAL element schema for Type==ParamArray (nil = elements of
+	// any shape). Fields is the OPTIONAL named-field schema for Type==ParamObject
+	// (empty = open object; undeclared keys are tolerated). Both are pure,
+	// recursive declarations the runtime validator and the UI read — the core never
+	// executes them. Recursion gives nested array-of-objects, object-of-arrays, etc.
+	Items  *ParamDef  // element schema for arrays
+	Fields []ParamDef // field schemas for objects
 }
