@@ -8,6 +8,7 @@ package resilience
 import (
 	"context"
 	"errors"
+	"math/rand"
 	"sync"
 	"time"
 )
@@ -139,9 +140,20 @@ type RetryPolicy struct {
 	MaxAttempts int
 	Base        time.Duration
 	Max         time.Duration
+	// Jitter is the fraction (0..1) of each computed delay that is randomized to
+	// spread retries and avoid a thundering herd. The default zero value
+	// preserves the exact deterministic delay*=2 backoff this policy has always
+	// produced — no existing caller changes behavior. When >0, the actual sleep
+	// for a delay d is drawn uniformly from [d*(1-Jitter), d] (full-jitter band,
+	// per AWS "Exponential Backoff And Jitter"); a value >=1 is clamped to 1
+	// (sleep in [0, d]).
+	Jitter float64
 	// Retryable decides whether an error is worth retrying; nil retries all.
 	Retryable func(error) bool
 	sleep     func(context.Context, time.Duration) error // injectable for tests
+	// rng is injectable for deterministic jitter in tests; nil uses the shared
+	// math/rand source.
+	rng func() float64
 }
 
 // Do executes fn up to MaxAttempts times, backing off between tries.
@@ -167,7 +179,11 @@ func (p RetryPolicy) Do(ctx context.Context, fn func() error) error {
 			break
 		}
 		if delay > 0 {
-			if serr := sleep(ctx, delay); serr != nil {
+			wait := delay
+			if p.Jitter > 0 {
+				wait = p.applyJitter(delay)
+			}
+			if serr := sleep(ctx, wait); serr != nil {
 				return serr
 			}
 		}
@@ -177,6 +193,24 @@ func (p RetryPolicy) Do(ctx context.Context, fn func() error) error {
 		}
 	}
 	return err
+}
+
+// applyJitter randomizes a computed backoff delay within the full-jitter band
+// [d*(1-Jitter), d]. It is only called when p.Jitter > 0, so the default
+// deterministic backoff path is untouched.
+func (p RetryPolicy) applyJitter(d time.Duration) time.Duration {
+	frac := p.Jitter
+	if frac > 1 {
+		frac = 1
+	}
+	r := p.rng
+	if r == nil {
+		r = rand.Float64
+	}
+	// span is the randomized portion of the delay; the remainder is the fixed
+	// floor. r() in [0,1) maps to a sleep in [d*(1-frac), d].
+	span := float64(d) * frac
+	return time.Duration(float64(d) - span*(1-r()))
 }
 
 func sleepCtx(ctx context.Context, d time.Duration) error {

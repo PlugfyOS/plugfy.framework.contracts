@@ -73,6 +73,7 @@ var surfacePackages = []string{
 	"persistence",
 	"resilience",
 	"spi",
+	"spi/core",
 }
 
 func TestGoldenABI(t *testing.T) {

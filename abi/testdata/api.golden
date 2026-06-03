@@ -347,6 +347,7 @@ package resilience // github.com/PlugfyOS/plugfy-common/resilience
 	type Guard method (T) Do(context.Context, func() error) error
 	type Guard struct
 	type RetryPolicy field Base time.Duration
+	type RetryPolicy field Jitter float64
 	type RetryPolicy field Max time.Duration
 	type RetryPolicy field MaxAttempts int
 	type RetryPolicy field Retryable func(error) bool
@@ -385,6 +386,10 @@ package spi // github.com/PlugfyOS/plugfy-common/spi
 	type DefaultLifecycle method (T) OnInit(LifecycleContext) error
 	type DefaultLifecycle method (T) OnProcessParameters(LifecycleContext, map[string]any) (map[string]any, error)
 	type DefaultLifecycle struct
+	type Evaluator interface
+	type Evaluator method Eval(string, map[string]any) (any, error)
+	type Evaluator method EvalBool(string, map[string]any) (bool, error)
+	type Evaluator method Interpolate(string, map[string]any) (string, error)
 	type EventBus embeds Provider
 	type EventBus interface
 	type EventBus method Capabilities() map[string]any
@@ -443,3 +448,204 @@ package spi // github.com/PlugfyOS/plugfy-common/spi
 	type TraceAttr struct
 	type Tracer interface
 	type Tracer method Start(context.Context, string, ...TraceAttr) (context.Context, Span)
+
+package spi/core // github.com/PlugfyOS/plugfy-common/spi/core
+	const KindAgent Kind = "agent"
+	const KindApp Kind = "app"
+	const KindComponent Kind = "component"
+	const KindExtension Kind = "extension"
+	const KindModule Kind = "module"
+	const KindPlugin Kind = "plugin"
+	const KindService Kind = "service"
+	const KindSolution Kind = "solution"
+	const KindTool Kind = "tool"
+	const ParamBoolean ParamType = "boolean"
+	const ParamColor ParamType = "color"
+	const ParamEnum ParamType = "enum"
+	const ParamFloat ParamType = "float"
+	const ParamInteger ParamType = "integer"
+	const ParamMultiline ParamType = "multiline"
+	const ParamObject ParamType = "object"
+	const ParamSDUI ParamType = "sdui"
+	const ParamSecret ParamType = "secret"
+	const ParamString ParamType = "string"
+	const SysDescribe untyped string = "sys.describe"
+	const SysHealth untyped string = "sys.health"
+	const SysMigrate untyped string = "sys.migrate"
+	const SysPrefix untyped string = "sys."
+	const SysSeedDemo untyped string = "sys.seedDemo"
+	func ErrMethodNotFound(string) *UnitError
+	type ActivationFinalizer interface
+	type ActivationFinalizer method Finalize(UnitContext) error
+	type BreakerPolicy field FailureThreshold int
+	type BreakerPolicy field Reset time.Duration
+	type BreakerPolicy field SuccessThreshold int
+	type BreakerPolicy struct
+	type BulkheadPolicy field Max int
+	type BulkheadPolicy struct
+	type Capability field Attributes map[string]string `json:"attributes,omitempty"`
+	type Capability field Name string `json:"name"`
+	type Capability field Version string `json:"version"`
+	type Capability struct
+	type DefaultUnit field Desc UnitDescriptor
+	type DefaultUnit method (*T) Capabilities() map[string]any
+	type DefaultUnit method (*T) Describe() UnitDescriptor
+	type DefaultUnit method (*T) HealthCheck(context.Context) error
+	type DefaultUnit method (*T) Invoke(UnitContext, string, map[string]any) (map[string]any, error)
+	type DefaultUnit method (*T) Kind() spi.Kind
+	type DefaultUnit method (*T) Method(string, Handler) *DefaultUnit
+	type DefaultUnit method (*T) Name() string
+	type DefaultUnit struct
+	type Event field Data json.RawMessage `json:"data,omitempty"`
+	type Event field DataContentType string `json:"datacontenttype,omitempty"`
+	type Event field ID string `json:"id"`
+	type Event field Source string `json:"source"`
+	type Event field SpecVersion string `json:"specversion"`
+	type Event field Subject string `json:"subject,omitempty"`
+	type Event field Time time.Time `json:"time"`
+	type Event field Type string `json:"type"`
+	type Event struct
+	type FieldDescriptor field Default any `json:"default,omitempty"`
+	type FieldDescriptor field Description string `json:"description,omitempty"`
+	type FieldDescriptor field Key string `json:"key"`
+	type FieldDescriptor field Label string `json:"label,omitempty"`
+	type FieldDescriptor field Options []string `json:"options,omitempty"`
+	type FieldDescriptor field Secret bool `json:"secret,omitempty"`
+	type FieldDescriptor field Type string `json:"type"`
+	type FieldDescriptor struct
+	type Handler func(ctx UnitContext, in map[string]any) (map[string]any, error)
+	type Kind string
+	type MethodDef field AuthScope string
+	type MethodDef field Idempotent bool
+	type MethodDef field Mask []string
+	type MethodDef field Name string
+	type MethodDef field Params []ParamDef
+	type MethodDef field Retry *RetryPolicy
+	type MethodDef field Returns []ParamDef
+	type MethodDef field Streaming bool
+	type MethodDef field Summary string
+	type MethodDef field Timeout time.Duration
+	type MethodDef field Title string
+	type MethodDef field Visibility string
+	type MethodDef struct
+	type OnFinalizer interface
+	type OnFinalizer method OnFinalize(UnitContext, map[string]any, error) map[string]any
+	type ParamDef field Default any
+	type ParamDef field Description string
+	type ParamDef field Key string
+	type ParamDef field Label string
+	type ParamDef field Options []string
+	type ParamDef field Required bool
+	type ParamDef field Secret bool
+	type ParamDef field Type ParamType
+	type ParamDef field Validate string
+	type ParamDef struct
+	type ParamProcessor interface
+	type ParamProcessor method OnProcessParameters(UnitContext, map[string]any) (map[string]any, error)
+	type ParamType string
+	type Progress field Data map[string]any
+	type Progress field Done int64
+	type Progress field Message string
+	type Progress field Percent float64
+	type Progress field Stage string
+	type Progress field Total int64
+	type Progress struct
+	type Requirement field Capability string `json:"capability"`
+	type Requirement field Filter string `json:"filter,omitempty"`
+	type Requirement field Optional bool `json:"optional,omitempty"`
+	type Requirement field VersionRange string `json:"versionRange"`
+	type Requirement struct
+	type Resourceful interface
+	type Resourceful method Acquire(UnitContext) (ActivationFinalizer, error)
+	type Result field Attempts int
+	type Result field Out map[string]any
+	type Result field Progress Progress
+	type Result struct
+	type RetryPolicy field Base time.Duration
+	type RetryPolicy field Breaker *BreakerPolicy
+	type RetryPolicy field Bulkhead *BulkheadPolicy
+	type RetryPolicy field Jitter float64
+	type RetryPolicy field Max time.Duration
+	type RetryPolicy field MaxAttempts int
+	type RetryPolicy field Multiplier float64
+	type RetryPolicy field Retryable []string
+	type RetryPolicy struct
+	type SettingsContribution field Fields []FieldDescriptor `json:"fields,omitempty"`
+	type SettingsContribution field Icon string `json:"icon,omitempty"`
+	type SettingsContribution field Priority int `json:"priority,omitempty"`
+	type SettingsContribution field Section string `json:"section"`
+	type SettingsContribution field Title string `json:"title,omitempty"`
+	type SettingsContribution struct
+	type Signing field Certificate string `json:"certificate,omitempty"`
+	type Signing field Identity string `json:"identity,omitempty"`
+	type Signing field Issuer string `json:"issuer,omitempty"`
+	type Signing field Mode string `json:"mode,omitempty"`
+	type Signing field Provenance string `json:"provenance,omitempty"`
+	type Signing field Required bool `json:"required"`
+	type Signing struct
+	type StateField field Default any `json:"default,omitempty"`
+	type StateField field Description string `json:"description,omitempty"`
+	type StateField field Name string `json:"name"`
+	type StateField field ResetOn string `json:"resetOn,omitempty"`
+	type StateField field Type string `json:"type"`
+	type StateField struct
+	type ThemeContribution field Components map[string]any `json:"components,omitempty"`
+	type ThemeContribution field ID string `json:"id"`
+	type ThemeContribution field Name string `json:"name"`
+	type ThemeContribution field Scope string `json:"scope,omitempty"`
+	type ThemeContribution field Tokens map[string]string `json:"tokens,omitempty"`
+	type ThemeContribution field Version string `json:"version"`
+	type ThemeContribution struct
+	type Unit embeds spi.Provider
+	type Unit interface
+	type Unit method Capabilities() map[string]any
+	type Unit method Describe() UnitDescriptor
+	type Unit method HealthCheck(context.Context) error
+	type Unit method Invoke(UnitContext, string, map[string]any) (map[string]any, error)
+	type Unit method Kind() spi.Kind
+	type Unit method Name() string
+	type UnitContext embeds spi.LifecycleContext
+	type UnitContext interface
+	type UnitContext method Context() context.Context
+	type UnitContext method Credentials() spi.CredentialAccessor
+	type UnitContext method Deadline() (time.Time, bool)
+	type UnitContext method Emit(Event) error
+	type UnitContext method IdempotencyKey() string
+	type UnitContext method Logger() spi.Logger
+	type UnitContext method Method() string
+	type UnitContext method NodeID() string
+	type UnitContext method Report(Progress)
+	type UnitContext method RunID() string
+	type UnitContext method State() spi.StateAccessor
+	type UnitContext method Tenant() spi.TenantRef
+	type UnitContext method Tracer() spi.Tracer
+	type UnitContext method UnitID() string
+	type UnitContext method UnitVersion() string
+	type UnitDescriptor field Capabilities []spi.CapabilityRequirement
+	type UnitDescriptor field DefaultPolicy *RetryPolicy
+	type UnitDescriptor field Description string
+	type UnitDescriptor field ID string
+	type UnitDescriptor field Kind Kind
+	type UnitDescriptor field Metadata map[string]string
+	type UnitDescriptor field Methods []MethodDef
+	type UnitDescriptor field Provides []Capability
+	type UnitDescriptor field Requires []Requirement
+	type UnitDescriptor field Settings []SettingsContribution
+	type UnitDescriptor field Signing *Signing
+	type UnitDescriptor field State *UnitState
+	type UnitDescriptor field Themes []ThemeContribution
+	type UnitDescriptor field Title string
+	type UnitDescriptor field Version string
+	type UnitDescriptor field Visibility string
+	type UnitDescriptor struct
+	type UnitError field Cause error
+	type UnitError field Class string
+	type UnitError field Code string
+	type UnitError field Message string
+	type UnitError method (*T) Error() string
+	type UnitError method (*T) ErrorClass() string
+	type UnitError method (*T) Unwrap() error
+	type UnitError struct
+	type UnitState field Fields []StateField `json:"fields,omitempty"`
+	type UnitState field Persistence string `json:"persistence,omitempty"`
+	type UnitState struct

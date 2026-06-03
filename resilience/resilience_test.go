@@ -66,6 +66,63 @@ func TestRetryEventuallySucceeds(t *testing.T) {
 	}
 }
 
+func TestRetryDefaultBackoffUnchangedByJitterField(t *testing.T) {
+	// Jitter defaults to 0 -> the backoff sequence is EXACTLY the historical
+	// deterministic delay*=2 (capped by Max), proving the new field is additive
+	// and does not alter existing callers.
+	var slept []time.Duration
+	p := RetryPolicy{
+		MaxAttempts: 5,
+		Base:        10 * time.Millisecond,
+		Max:         50 * time.Millisecond,
+		sleep:       func(_ context.Context, d time.Duration) error { slept = append(slept, d); return nil },
+	}
+	_ = p.Do(context.Background(), func() error { return errors.New("always") })
+	// 5 attempts -> 4 sleeps: 10, 20, 40, then capped at 50.
+	want := []time.Duration{10 * time.Millisecond, 20 * time.Millisecond, 40 * time.Millisecond, 50 * time.Millisecond}
+	if len(slept) != len(want) {
+		t.Fatalf("sleep count = %d, want %d (%v)", len(slept), len(want), slept)
+	}
+	for i := range want {
+		if slept[i] != want[i] {
+			t.Fatalf("sleep[%d] = %v, want %v (full sequence %v)", i, slept[i], want[i], slept)
+		}
+	}
+}
+
+func TestRetryJitterStaysWithinBand(t *testing.T) {
+	// With Jitter>0 every sleep must fall in [d*(1-Jitter), d] for the
+	// corresponding deterministic delay d. rng is injected for determinism.
+	rngVals := []float64{0.0, 1.0, 0.5} // min of band, top of band, midpoint
+	idx := 0
+	var slept []time.Duration
+	p := RetryPolicy{
+		MaxAttempts: 4,
+		Base:        100 * time.Millisecond,
+		Jitter:      0.5,
+		sleep:       func(_ context.Context, d time.Duration) error { slept = append(slept, d); return nil },
+		rng:         func() float64 { v := rngVals[idx%len(rngVals)]; idx++; return v },
+	}
+	_ = p.Do(context.Background(), func() error { return errors.New("always") })
+	delays := []time.Duration{100 * time.Millisecond, 200 * time.Millisecond, 400 * time.Millisecond}
+	if len(slept) != len(delays) {
+		t.Fatalf("sleep count = %d, want %d", len(slept), len(delays))
+	}
+	for i, d := range delays {
+		lo := time.Duration(float64(d) * 0.5) // d*(1-Jitter)
+		if slept[i] < lo || slept[i] > d {
+			t.Fatalf("sleep[%d]=%v outside band [%v,%v]", i, slept[i], lo, d)
+		}
+	}
+	// rng=0.0 -> floor of band; rng=1.0 -> exactly d.
+	if slept[0] != 50*time.Millisecond {
+		t.Fatalf("rng=0 should yield band floor 50ms, got %v", slept[0])
+	}
+	if slept[1] != 200*time.Millisecond {
+		t.Fatalf("rng=1 should yield full delay 200ms, got %v", slept[1])
+	}
+}
+
 func TestRetryRespectsRetryablePredicate(t *testing.T) {
 	calls := 0
 	fatal := errors.New("fatal")
