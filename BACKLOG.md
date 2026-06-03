@@ -50,4 +50,4 @@ Items from v1.0.0 onward. Labels: `[type][priority][size]`.
 > Open debts are mirrored here for readability; GitHub Issues remain the source
 > of truth. CMN-09 and CMN-10 are planned for v1.2.0 and are not yet filed as
 > issues. Tracking follows the
-> [Delivery Standard](https://github.com/PlugfyOS/plugfy-platform/blob/main/docs/DELIVERY-STANDARD.md).
+> [Delivery Standard](https://github.com/PlugfyOS/plugfy.platform.governance.spine/blob/main/docs/DELIVERY-STANDARD.md).

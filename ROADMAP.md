@@ -8,6 +8,6 @@
 | **v1.2.0** | First-class telemetry contract + distributed trace over the event bus | CMN-09, CMN-10 |
 
 Tied to the master roadmap in
-[`PlugfyOS/plugfy-platform`](https://github.com/PlugfyOS/plugfy-platform). As the
+[`PlugfyOS/plugfy.platform.governance.spine`](https://github.com/PlugfyOS/plugfy.platform.governance.spine). As the
 L1 baseplate, `plugfy-common` is the first unit of any release wave — every other
 module pins `^1.x` of it, so its ABI must stay backward-compatible within a major.

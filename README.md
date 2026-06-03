@@ -45,8 +45,8 @@ upper layers knowing which host they landed in.
 
 ```go
 import (
-    "github.com/PlugfyOS/plugfy-common/spi"
-    "github.com/PlugfyOS/plugfy-common/events"
+    "github.com/PlugfyOS/plugfy.framework.contracts/spi"
+    "github.com/PlugfyOS/plugfy.framework.contracts/events"
 )
 ```
 
@@ -55,7 +55,7 @@ defines its own port and exposes it. Neither imports the other's implementation 
 only this contract. The dependency arrow always points here.
 
 > **App authors** normally import the SDK
-> ([`plugfy-sdk`](https://github.com/PlugfyOS/plugfy-sdk)), which re-exports these
+> ([`plugfy-sdk`](https://github.com/PlugfyOS/plugfy.foundation.sdk)), which re-exports these
 > contracts behind a single ergonomic surface, rather than depending on
 > `plugfy-common` directly.
 

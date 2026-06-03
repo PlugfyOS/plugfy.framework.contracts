@@ -74,5 +74,5 @@ golden diff). The decouple gate plus `go vet`/`go build` guard the rest.
 
 A unit at `Lx` depends only on layers `< x`, always through a contract. The
 master layer model lives in
-[`PlugfyOS/plugfy-platform`](https://github.com/PlugfyOS/plugfy-platform) (see
+[`PlugfyOS/plugfy.platform.governance.spine`](https://github.com/PlugfyOS/plugfy.platform.governance.spine) (see
 `docs/PLATFORM-ARCHITECTURE.md`).
