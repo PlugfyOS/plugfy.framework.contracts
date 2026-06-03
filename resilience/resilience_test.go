@@ -90,6 +90,66 @@ func TestRetryDefaultBackoffUnchangedByJitterField(t *testing.T) {
 	}
 }
 
+func TestRetryMultiplier(t *testing.T) {
+	// Multiplier is additive: 0 reproduces the historical *2 sequence; >0 replaces
+	// the doubling (3 triples each delay), both still capped by Max.
+	collect := func(p RetryPolicy) []time.Duration {
+		var slept []time.Duration
+		p.sleep = func(_ context.Context, d time.Duration) error { slept = append(slept, d); return nil }
+		_ = p.Do(context.Background(), func() error { return errors.New("always") })
+		return slept
+	}
+
+	// Multiplier == 0 -> EXACTLY today's *2 backoff (no Max), proving default is unchanged.
+	got := collect(RetryPolicy{MaxAttempts: 4, Base: 10 * time.Millisecond})
+	wantDouble := []time.Duration{10 * time.Millisecond, 20 * time.Millisecond, 40 * time.Millisecond}
+	if len(got) != len(wantDouble) {
+		t.Fatalf("Multiplier=0 sleep count = %d, want %d (%v)", len(got), len(wantDouble), got)
+	}
+	for i := range wantDouble {
+		if got[i] != wantDouble[i] {
+			t.Fatalf("Multiplier=0 sleep[%d] = %v, want %v (full %v)", i, got[i], wantDouble[i], got)
+		}
+	}
+
+	// Multiplier == 3 -> each delay triples (10, 30, 90), still capped by Max=80.
+	got = collect(RetryPolicy{MaxAttempts: 4, Base: 10 * time.Millisecond, Max: 80 * time.Millisecond, Multiplier: 3})
+	wantTriple := []time.Duration{10 * time.Millisecond, 30 * time.Millisecond, 80 * time.Millisecond}
+	if len(got) != len(wantTriple) {
+		t.Fatalf("Multiplier=3 sleep count = %d, want %d (%v)", len(got), len(wantTriple), got)
+	}
+	for i := range wantTriple {
+		if got[i] != wantTriple[i] {
+			t.Fatalf("Multiplier=3 sleep[%d] = %v, want %v (full %v)", i, got[i], wantTriple[i], got)
+		}
+	}
+
+	// Jitter still composes with a non-2 Multiplier: each sleep stays in [d*(1-Jitter), d]
+	// for the tripled deterministic delays. rng injected for determinism.
+	var slept []time.Duration
+	idx := 0
+	rngVals := []float64{0.0, 1.0, 0.5}
+	p := RetryPolicy{
+		MaxAttempts: 4,
+		Base:        100 * time.Millisecond,
+		Multiplier:  3,
+		Jitter:      0.5,
+		sleep:       func(_ context.Context, d time.Duration) error { slept = append(slept, d); return nil },
+		rng:         func() float64 { v := rngVals[idx%len(rngVals)]; idx++; return v },
+	}
+	_ = p.Do(context.Background(), func() error { return errors.New("always") })
+	delays := []time.Duration{100 * time.Millisecond, 300 * time.Millisecond, 900 * time.Millisecond}
+	if len(slept) != len(delays) {
+		t.Fatalf("Multiplier+Jitter sleep count = %d, want %d (%v)", len(slept), len(delays), slept)
+	}
+	for i, d := range delays {
+		lo := time.Duration(float64(d) * 0.5) // d*(1-Jitter)
+		if slept[i] < lo || slept[i] > d {
+			t.Fatalf("Multiplier+Jitter sleep[%d]=%v outside band [%v,%v]", i, slept[i], lo, d)
+		}
+	}
+}
+
 func TestRetryJitterStaysWithinBand(t *testing.T) {
 	// With Jitter>0 every sleep must fall in [d*(1-Jitter), d] for the
 	// corresponding deterministic delay d. rng is injected for determinism.

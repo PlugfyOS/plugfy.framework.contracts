@@ -140,6 +140,13 @@ type RetryPolicy struct {
 	MaxAttempts int
 	Base        time.Duration
 	Max         time.Duration
+	// Multiplier is the per-attempt backoff growth factor. The default zero value
+	// preserves the exact historical delay*=2 doubling this policy has always
+	// produced — no existing caller changes behavior. When >0 it replaces the *2
+	// step (e.g. 3 triples each delay; 1 holds a constant delay), still capped by
+	// Max. Applied to the deterministic delay BEFORE any Jitter, so the two axes
+	// compose cleanly.
+	Multiplier float64
 	// Jitter is the fraction (0..1) of each computed delay that is randomized to
 	// spread retries and avoid a thundering herd. The default zero value
 	// preserves the exact deterministic delay*=2 backoff this policy has always
@@ -187,7 +194,11 @@ func (p RetryPolicy) Do(ctx context.Context, fn func() error) error {
 				return serr
 			}
 		}
-		delay *= 2
+		if p.Multiplier > 0 {
+			delay = time.Duration(float64(delay) * p.Multiplier)
+		} else {
+			delay *= 2
+		}
 		if p.Max > 0 && delay > p.Max {
 			delay = p.Max
 		}

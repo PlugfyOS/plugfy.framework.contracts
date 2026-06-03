@@ -12,7 +12,7 @@ import "time"
 type RetryPolicy struct {
 	MaxAttempts int
 	Base, Max   time.Duration
-	Multiplier  float64         // default 2.0 (resilience hardcodes *2)
+	Multiplier  float64         // backoff growth factor; 0 => resilience default *2, else honored verbatim
 	Jitter      float64         // 0..1 fraction of the delay randomized (maps to resilience.RetryPolicy.Jitter)
 	Retryable   []string        // error CLASSES to retry: transient|timeout|… (empty + Idempotent => default set)
 	Breaker     *BreakerPolicy  // optional circuit breaker (maps to resilience.Breaker)

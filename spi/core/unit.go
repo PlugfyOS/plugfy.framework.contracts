@@ -109,10 +109,13 @@ type ActivationFinalizer interface {
 }
 
 // OnFinalizer is the PER-INVOKE finalize the Runner calls on EVERY exit path of
-// EACH Invoke (success, error, panic-recover, timeout, cancel). It applies
-// MethodDef.Mask redaction + per-call cleanup. It is the heir of
-// Lifecycle.OnFinalize(out, runErr) and is DISTINCT from the activation teardown
-// above. The brick body writes none of this; the Runner guarantees it.
+// EACH Invoke (success, error, panic-recover, timeout, cancel). It does per-call
+// cleanup ONLY. Masking/redaction is NOT done here — it is a PLATFORM wrapper
+// stacked outside this core Runner (reading the platform's own governance
+// descriptor), not a core/Runner concern and not a field on the pure descriptor.
+// This hook is the heir of Lifecycle.OnFinalize(out, runErr) and is DISTINCT from
+// the activation teardown above. The brick body writes none of this; the Runner
+// guarantees it.
 type OnFinalizer interface {
 	OnFinalize(ctx UnitContext, out map[string]any, runErr error) map[string]any
 }

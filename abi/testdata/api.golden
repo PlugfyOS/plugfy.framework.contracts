@@ -350,6 +350,7 @@ package resilience // github.com/PlugfyOS/plugfy-common/resilience
 	type RetryPolicy field Jitter float64
 	type RetryPolicy field Max time.Duration
 	type RetryPolicy field MaxAttempts int
+	type RetryPolicy field Multiplier float64
 	type RetryPolicy field Retryable func(error) bool
 	type RetryPolicy method (T) Do(context.Context, func() error) error
 	type RetryPolicy struct
@@ -483,10 +484,6 @@ package spi/core // github.com/PlugfyOS/plugfy-common/spi/core
 	type BreakerPolicy struct
 	type BulkheadPolicy field Max int
 	type BulkheadPolicy struct
-	type Capability field Attributes map[string]string `json:"attributes,omitempty"`
-	type Capability field Name string `json:"name"`
-	type Capability field Version string `json:"version"`
-	type Capability struct
 	type DefaultUnit field Desc UnitDescriptor
 	type DefaultUnit method (*T) Capabilities() map[string]any
 	type DefaultUnit method (*T) Describe() UnitDescriptor
@@ -505,19 +502,9 @@ package spi/core // github.com/PlugfyOS/plugfy-common/spi/core
 	type Event field Time time.Time `json:"time"`
 	type Event field Type string `json:"type"`
 	type Event struct
-	type FieldDescriptor field Default any `json:"default,omitempty"`
-	type FieldDescriptor field Description string `json:"description,omitempty"`
-	type FieldDescriptor field Key string `json:"key"`
-	type FieldDescriptor field Label string `json:"label,omitempty"`
-	type FieldDescriptor field Options []string `json:"options,omitempty"`
-	type FieldDescriptor field Secret bool `json:"secret,omitempty"`
-	type FieldDescriptor field Type string `json:"type"`
-	type FieldDescriptor struct
 	type Handler func(ctx UnitContext, in map[string]any) (map[string]any, error)
 	type Kind string
-	type MethodDef field AuthScope string
 	type MethodDef field Idempotent bool
-	type MethodDef field Mask []string
 	type MethodDef field Name string
 	type MethodDef field Params []ParamDef
 	type MethodDef field Retry *RetryPolicy
@@ -526,7 +513,6 @@ package spi/core // github.com/PlugfyOS/plugfy-common/spi/core
 	type MethodDef field Summary string
 	type MethodDef field Timeout time.Duration
 	type MethodDef field Title string
-	type MethodDef field Visibility string
 	type MethodDef struct
 	type OnFinalizer interface
 	type OnFinalizer method OnFinalize(UnitContext, map[string]any, error) map[string]any
@@ -550,11 +536,6 @@ package spi/core // github.com/PlugfyOS/plugfy-common/spi/core
 	type Progress field Stage string
 	type Progress field Total int64
 	type Progress struct
-	type Requirement field Capability string `json:"capability"`
-	type Requirement field Filter string `json:"filter,omitempty"`
-	type Requirement field Optional bool `json:"optional,omitempty"`
-	type Requirement field VersionRange string `json:"versionRange"`
-	type Requirement struct
 	type Resourceful interface
 	type Resourceful method Acquire(UnitContext) (ActivationFinalizer, error)
 	type Result field Attempts int
@@ -570,32 +551,6 @@ package spi/core // github.com/PlugfyOS/plugfy-common/spi/core
 	type RetryPolicy field Multiplier float64
 	type RetryPolicy field Retryable []string
 	type RetryPolicy struct
-	type SettingsContribution field Fields []FieldDescriptor `json:"fields,omitempty"`
-	type SettingsContribution field Icon string `json:"icon,omitempty"`
-	type SettingsContribution field Priority int `json:"priority,omitempty"`
-	type SettingsContribution field Section string `json:"section"`
-	type SettingsContribution field Title string `json:"title,omitempty"`
-	type SettingsContribution struct
-	type Signing field Certificate string `json:"certificate,omitempty"`
-	type Signing field Identity string `json:"identity,omitempty"`
-	type Signing field Issuer string `json:"issuer,omitempty"`
-	type Signing field Mode string `json:"mode,omitempty"`
-	type Signing field Provenance string `json:"provenance,omitempty"`
-	type Signing field Required bool `json:"required"`
-	type Signing struct
-	type StateField field Default any `json:"default,omitempty"`
-	type StateField field Description string `json:"description,omitempty"`
-	type StateField field Name string `json:"name"`
-	type StateField field ResetOn string `json:"resetOn,omitempty"`
-	type StateField field Type string `json:"type"`
-	type StateField struct
-	type ThemeContribution field Components map[string]any `json:"components,omitempty"`
-	type ThemeContribution field ID string `json:"id"`
-	type ThemeContribution field Name string `json:"name"`
-	type ThemeContribution field Scope string `json:"scope,omitempty"`
-	type ThemeContribution field Tokens map[string]string `json:"tokens,omitempty"`
-	type ThemeContribution field Version string `json:"version"`
-	type ThemeContribution struct
 	type Unit embeds spi.Provider
 	type Unit interface
 	type Unit method Capabilities() map[string]any
@@ -621,22 +576,14 @@ package spi/core // github.com/PlugfyOS/plugfy-common/spi/core
 	type UnitContext method Tracer() spi.Tracer
 	type UnitContext method UnitID() string
 	type UnitContext method UnitVersion() string
-	type UnitDescriptor field Capabilities []spi.CapabilityRequirement
 	type UnitDescriptor field DefaultPolicy *RetryPolicy
 	type UnitDescriptor field Description string
 	type UnitDescriptor field ID string
 	type UnitDescriptor field Kind Kind
 	type UnitDescriptor field Metadata map[string]string
 	type UnitDescriptor field Methods []MethodDef
-	type UnitDescriptor field Provides []Capability
-	type UnitDescriptor field Requires []Requirement
-	type UnitDescriptor field Settings []SettingsContribution
-	type UnitDescriptor field Signing *Signing
-	type UnitDescriptor field State *UnitState
-	type UnitDescriptor field Themes []ThemeContribution
 	type UnitDescriptor field Title string
 	type UnitDescriptor field Version string
-	type UnitDescriptor field Visibility string
 	type UnitDescriptor struct
 	type UnitError field Cause error
 	type UnitError field Class string
@@ -646,6 +593,3 @@ package spi/core // github.com/PlugfyOS/plugfy-common/spi/core
 	type UnitError method (*T) ErrorClass() string
 	type UnitError method (*T) Unwrap() error
 	type UnitError struct
-	type UnitState field Fields []StateField `json:"fields,omitempty"`
-	type UnitState field Persistence string `json:"persistence,omitempty"`
-	type UnitState struct
