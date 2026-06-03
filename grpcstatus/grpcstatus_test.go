@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/PlugfyOS/plugfy-common/errs"
+	"github.com/PlugfyOS/plugfy.framework.contracts/errs"
 )
 
 // allClasses is the full set of canonical error classes the taxonomy defines.

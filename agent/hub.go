@@ -22,7 +22,7 @@ import (
 	"context"
 	"errors"
 
-	commonspi "github.com/PlugfyOS/plugfy-common/spi"
+	commonspi "github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
 
 // ErrPrimitiveNotFound is returned by [AgentHub.Get]/[AgentHub.Resolve] when a

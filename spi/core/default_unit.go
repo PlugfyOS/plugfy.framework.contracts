@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 
-	commonspi "github.com/PlugfyOS/plugfy-common/spi"
+	commonspi "github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
 
 // Handler is one named method's implementation.

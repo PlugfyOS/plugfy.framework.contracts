@@ -29,7 +29,7 @@ package agent
 import (
 	"context"
 
-	commonspi "github.com/PlugfyOS/plugfy-common/spi"
+	commonspi "github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
 
 // KindAI is the SPI kind under which an [Assistant] self-registers with the

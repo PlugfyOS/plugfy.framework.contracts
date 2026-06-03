@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/PlugfyOS/plugfy-common/spi"
+	"github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
 
 // baseSpine is a representative installed platform spine used across the

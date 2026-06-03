@@ -34,7 +34,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/PlugfyOS/plugfy-common/errs"
+	"github.com/PlugfyOS/plugfy.framework.contracts/errs"
 )
 
 // Code is a gRPC status code. Its integer values are the canonical, frozen gRPC

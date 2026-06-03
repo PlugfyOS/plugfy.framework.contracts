@@ -3,7 +3,7 @@ package spi
 import (
 	"context"
 
-	"github.com/PlugfyOS/plugfy-common/events"
+	"github.com/PlugfyOS/plugfy.framework.contracts/events"
 )
 
 // Handler processes a single delivered CloudEvent. Returning an error MAY

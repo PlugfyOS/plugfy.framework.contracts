@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/PlugfyOS/plugfy-common/spi"
+	"github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
 
 // HostManifestSchema is the schema identifier of the per-host dependency

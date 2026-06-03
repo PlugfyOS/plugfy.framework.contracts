@@ -1,3 +1,3 @@
-module github.com/PlugfyOS/plugfy-common
+module github.com/PlugfyOS/plugfy.framework.contracts
 
 go 1.25

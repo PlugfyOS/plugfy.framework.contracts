@@ -51,7 +51,7 @@ var update = flag.Bool("update", false, "rewrite testdata/api.golden from the cu
 // modulePath is the import path prefix of this module. Used to recognize
 // intra-module imports (e.g. spi -> events) so they can be type-checked from
 // local source rather than resolved as external dependencies.
-const modulePath = "github.com/PlugfyOS/plugfy-common"
+const modulePath = "github.com/PlugfyOS/plugfy.framework.contracts"
 
 // goldenPath is the committed snapshot of the frozen ABI.
 const goldenPath = "testdata/api.golden"

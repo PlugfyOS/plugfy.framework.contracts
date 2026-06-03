@@ -3,8 +3,8 @@ package core
 import (
 	"time"
 
-	"github.com/PlugfyOS/plugfy-common/events"
-	commonspi "github.com/PlugfyOS/plugfy-common/spi"
+	"github.com/PlugfyOS/plugfy.framework.contracts/events"
+	commonspi "github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
 
 // Unit is the LEGO brick. SUPER SIMPLE by design.

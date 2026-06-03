@@ -3,7 +3,7 @@ package agent_test
 import (
 	"testing"
 
-	"github.com/PlugfyOS/plugfy-common/agent"
+	"github.com/PlugfyOS/plugfy.framework.contracts/agent"
 )
 
 // TestPrimitiveMetaInterface asserts every concrete primitive embeds

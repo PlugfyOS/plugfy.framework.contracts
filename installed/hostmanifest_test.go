@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/PlugfyOS/plugfy-common/spi"
+	"github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
 
 func sampleHostManifest() HostManifest {

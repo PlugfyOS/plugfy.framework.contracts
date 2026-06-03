@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/PlugfyOS/plugfy-common/resilience"
+	"github.com/PlugfyOS/plugfy.framework.contracts/resilience"
 )
 
 // ExampleGuard shows how a connector composes a bulkhead, a retry policy and a

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/PlugfyOS/plugfy-common/spi"
+	"github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
 
 // This file LIFTS the pure, I/O-free version-compatibility admissibility matrix
