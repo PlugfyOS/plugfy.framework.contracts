@@ -22,10 +22,14 @@ type DefaultUnit struct {
 	handlers map[string]Handler // method name -> impl, registered via Method()
 }
 
-// Provider surface — satisfied directly from the descriptor.
+// Provider surface — satisfied directly from the descriptor. Capabilities is the
+// generic Provider feature-flag map; the pure core declares none, so it returns
+// an empty map. Capability NEGOTIATION (provides/requires/baseplate
+// requirements) is a PLATFORM concern layered on by reading Describe(), not a
+// core descriptor field — override this if a host wants to surface flags.
 func (b *DefaultUnit) Name() string                      { return b.Desc.ID }
 func (b *DefaultUnit) Kind() commonspi.Kind              { return commonspi.Kind(b.Desc.Kind) }
-func (b *DefaultUnit) Capabilities() map[string]any      { return b.Desc.capabilitiesMap() }
+func (b *DefaultUnit) Capabilities() map[string]any      { return map[string]any{} }
 func (b *DefaultUnit) HealthCheck(context.Context) error { return nil } // override if needed
 
 // Describe returns the embedded descriptor.

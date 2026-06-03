@@ -8,13 +8,34 @@
 //	Describe() UnitDescriptor                                  // pure, ctx-free self-description
 //	Invoke(ctx UnitContext, method string, in map[string]any)  // one named, async method
 //
-// Everything cross-cutting — progress, events, errors, finalization, retries,
-// timeouts, masking, validation, isolation, signing, CEL gating — lives in the
-// UnitContext the brick is handed and in a runtime policy wrapper (the future
-// core.Runner) that sits OUTSIDE the brick, driven by what the brick DECLARES in
-// its UnitDescriptor. The author of a Unit writes a Describe() literal and one
-// method body; they write nothing for retries, finalization, progress plumbing,
-// or event fan-out.
+// Everything execution-cross-cutting — progress, events, errors, finalization,
+// retries, timeouts, validation — lives in the UnitContext the brick is handed
+// and in a runtime policy wrapper (the future core.Runner) that sits OUTSIDE the
+// brick, driven by what the brick DECLARES in its UnitDescriptor. The author of a
+// Unit writes a Describe() literal and one method body; they write nothing for
+// retries, finalization, progress plumbing, or event fan-out.
+//
+// # What the core does NOT know
+//
+// The core is PURE: it imports NO platform/foundation type and carries ONLY what
+// is intrinsic to running a brick. Everything else is a PLATFORM/FOUNDATION
+// concern layered ON the core by reading Describe() and wrapping the Unit —
+// never a field on this contract:
+//
+//   - capability negotiation (provides/requires, spi.CapabilityRequirement) —
+//     the resolver/host concern;
+//   - signing / provenance (supply-chain, verify-before-install) — the
+//     installer/foundation concern;
+//   - data / state (CQRS, apps-own-data) — the persistence foundation concern;
+//   - settings and themes contributions — the settings/ui foundation concern;
+//   - auth-scope, visibility (CEL gating), output masking — the access-control /
+//     compliance foundation concern.
+//
+// The platform reads the pure Describe() and ADDS its own governance descriptor
+// plus Unit -> Unit wrappers (signature gating, capability checks, state binding,
+// settings/theme registration, visibility/mask enforcement). The core stays a
+// self-contained, execution-only contract; the richness lives in the layers
+// composed on top.
 //
 // # The brick (this package, Phase 0)
 //
@@ -28,26 +49,13 @@
 //     unchanged: a Unit is already a first-class Provider.
 //   - spi.LifecycleContext  — embedded by UnitContext (identity/tenant/logger/
 //     tracer/state/credentials), extended with only Report/Emit/Deadline/Method.
-//   - spi.CapabilityRequirement — carried verbatim on the descriptor.
 //   - events.CloudEvent     — aliased as Event; the brick never duplicates the shape.
 //   - resilience.{Guard,Breaker,Bulkhead,RetryPolicy} — the wrapper reuses these
 //     verbatim; this package declares a DECLARATIVE RetryPolicy the wrapper maps
 //     onto them.
 //   - spi.Evaluator         — the CEL port the future core.Runner uses to evaluate
-//     ParamDef.Validate and Visibility before Invoke.
-//
-// # Commons-resident descriptor mirror types
-//
-// The authoritative contract types the UnitDescriptor's supply-chain and
-// composition fields (Provides/Requires/Signing/State/Settings/Themes) against
-// platform-runtime/manifest. commons CANNOT import platform-runtime — that
-// module already depends on commons, so the import would be a module cycle and
-// would violate the contract's own invariant that the DEFINITION layer carries
-// NO upward dependency on EXECUTION/OPERATION. These declarations therefore live
-// here as the commons-HOME twins of the manifest types, carried verbatim onto
-// the descriptor (identical field names and JSON tags). The host projects
-// between them at the composition root; Phase 3 reconciles the wire/manifest
-// projection. Nothing in Phase 0 reads their internals, so the carry is exact.
+//     ParamDef.Validate before Invoke (platform-layer visibility/access predicates
+//     reuse the same port outside the core).
 //
 // # Recursive composition
 //

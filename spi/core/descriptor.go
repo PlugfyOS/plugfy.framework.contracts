@@ -1,10 +1,6 @@
 package core
 
-import (
-	"time"
-
-	commonspi "github.com/PlugfyOS/plugfy-common/spi"
-)
+import "time"
 
 // Kind is the composition ROLE tag. Nothing in the contract branches on Kind —
 // it is metadata the resolver/marketplace/host read to decide replaceability and
@@ -24,10 +20,12 @@ const (
 	KindSolution  Kind = "solution" // a vertical / pipeline-of-units exposed AS a unit
 )
 
-// ParamType is the closed parameter type set, reused VERBATIM from
-// FieldDescriptor's Settings type set so the existing UI renderer works for
-// invocation params, not just settings — extended with object and secret for
-// invocation IO.
+// ParamType is the closed parameter type set for a method's typed IO. The base
+// set (boolean/string/integer/float/enum) plus object/secret is intrinsic to a
+// method's input/output. The presentation-oriented values (color/multiline/sdui)
+// are a harmless declaration on the param: the core never interprets them; the
+// UI FOUNDATION reads them when it renders the param. The tag itself stays here
+// because it is part of how a method DECLARES its IO; the meaning is layered on.
 type ParamType string
 
 const (
@@ -39,7 +37,7 @@ const (
 	ParamColor     ParamType = "color"
 	ParamMultiline ParamType = "multiline"
 	ParamSDUI      ParamType = "sdui"
-	// object and secret extend the FieldDescriptor set for invocation IO:
+	// object and secret extend the set for invocation IO:
 	ParamObject ParamType = "object"
 	ParamSecret ParamType = "secret"
 )
@@ -57,12 +55,13 @@ const (
 	SysHealth   = "sys.health"
 )
 
-// UnitDescriptor is the one self-description: identity, version, typed UI-hinted
-// parameters, the NAMED method set, declared capabilities and cross-cutting
-// policy. It REFERENCES existing types verbatim (it does not re-invent them):
-// Capabilities is the commons spi.CapabilityRequirement; the supply-chain and
-// composition fields use the commons-home twins of platform-runtime/manifest
-// (see descriptor_manifest.go for why commons cannot import that module).
+// UnitDescriptor is the ONE self-description of a Unit: identity, version, the
+// composition ROLE tag, human-facing text, free-form metadata, the NAMED method
+// set, and the unit-wide default execution policy. It is PURE: it carries ONLY
+// what is intrinsic to a runnable brick and references NO platform/foundation
+// type. Capability negotiation, supply-chain/signing, data/state, settings,
+// themes, access-control and visibility are PLATFORM/FOUNDATION concerns layered
+// ON the core by reading Describe() — see doc.go.
 type UnitDescriptor struct {
 	ID          string            // reverse-DNS identity (== LifecycleContext.UnitID())
 	Version     string            // SemVer               (== LifecycleContext.UnitVersion())
@@ -73,49 +72,17 @@ type UnitDescriptor struct {
 
 	Methods []MethodDef // NAMED METHODS — the headline gap, closed; >= 1
 
-	// Capability negotiation — KEPT verbatim, no regress to a flat string:
-	Provides     []Capability                      // OSGi-style provides
-	Requires     []Requirement                     // OSGi version ranges
-	Capabilities []commonspi.CapabilityRequirement // commons baseplate requirement shape
-
-	// Supply-chain + state references — the descriptor carries them, the
-	// installer/host enforce them (verify-before-install stays):
-	Signing *Signing   // signature/provenance policy (no regress)
-	State   *UnitState // CQRS/apps-own-data: THIS unit's own state fields
-
-	// Composition contributions (Settings/Themes) — these are composition, not
-	// invocation:
-	Settings []SettingsContribution
-	Themes   []ThemeContribution
-
 	// DefaultPolicy is the unit-wide default a method's policy overrides; nil =
 	// run-once.
 	DefaultPolicy *RetryPolicy
-	// Visibility is a CEL predicate gating whether the unit is offered to a
-	// caller (sandboxed).
-	Visibility string
 }
 
-// capabilitiesMap flattens the descriptor's declared capabilities into the
-// map[string]any shape spi.Provider.Capabilities returns, so a DefaultUnit can
-// satisfy Provider without the author duplicating the data.
-func (d UnitDescriptor) capabilitiesMap() map[string]any {
-	out := make(map[string]any, len(d.Provides)+len(d.Requires)+len(d.Capabilities))
-	for _, c := range d.Provides {
-		out["provides:"+c.Name] = c.Version
-	}
-	for _, r := range d.Requires {
-		out["requires:"+r.Capability] = r.VersionRange
-	}
-	for _, cr := range d.Capabilities {
-		out["capability:"+cr.Capability] = cr.Version
-	}
-	return out
-}
-
-// MethodDef is a named operation with typed UI-hinted IO and declared policy.
-// This is where the brick stays simple: every cross-cutting concern is a FIELD
-// here, executed by the wrapper, never a method on Unit.
+// MethodDef is a named operation with typed UI-hinted IO and declared execution
+// policy. This is where the brick stays simple: every execution-intrinsic
+// concern is a FIELD here, executed by the wrapper, never a method on Unit.
+// Cross-cutting governance that is NOT execution-intrinsic — output masking,
+// auth scope, visibility — is NOT here; the platform layers it on by reading the
+// descriptor (see doc.go).
 type MethodDef struct {
 	Name    string     // the `method` Invoke receives; the wire `function`; the Node `function`
 	Title   string     //
@@ -123,27 +90,23 @@ type MethodDef struct {
 	Params  []ParamDef // typed UI-hinted INPUT  (closes the opaque UnitConfig.Schema $ref gap)
 	Returns []ParamDef // typed OUTPUT schema     (enables compose-time typed edges)
 
-	// Cross-cutting policy this method DECLARES; the wrapper executes it. The
-	// author writes none of the imperative logic.
+	// Execution-intrinsic policy this method DECLARES; the wrapper executes it.
+	// The author writes none of the imperative logic.
 	Retry      *RetryPolicy  // DECLARED retries  — wrapper runs the backoff loop
 	Timeout    time.Duration // DECLARED deadline — wrapper sets ctx deadline
-	Mask       []string      // output keys redacted on finalize
 	Idempotent bool          // safe-to-retry hint feeding the wrapper's default Retryable
-
-	// Transport + mount hints (data, not behavior):
-	Streaming  bool   // method emits a frame stream -> supervisor.v1 InvokeStream / api.Route.Streaming
-	AuthScope  string // EAPI auth scope when this method is mounted as a route (trust tiers)
-	Visibility string // CEL predicate gating availability of THIS method (sandboxed)
+	Streaming  bool          // method emits a frame stream -> supervisor.v1 InvokeStream
 }
 
-// ParamDef is a typed, UI-hinted parameter for a runnable method. It supersedes
-// FieldDescriptor and reuses its validated type set verbatim (ParamType),
-// promoting it from Settings-only to per-method invocation IO (input and output).
+// ParamDef is a typed, UI-hinted parameter for a runnable method. It is
+// intrinsic to a method's IO: the typing and validation belong to the method
+// itself. The closed Type set (ParamType) tags the value; presentation-oriented
+// tags are interpreted by the ui foundation, never by the core.
 type ParamDef struct {
 	Key         string
 	Label       string
 	Description string
-	Type        ParamType // reuses the FieldDescriptor closed set + object/secret
+	Type        ParamType // closed type set + object/secret
 	Default     any
 	Options     []string // enum
 	Required    bool
