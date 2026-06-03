@@ -278,11 +278,15 @@ package installed // github.com/PlugfyOS/plugfy.framework.contracts/installed
 package persistence // github.com/PlugfyOS/plugfy.framework.contracts/persistence
 	const DialectPostgres Dialect = "postgres"
 	const DialectSQLite Dialect = "sqlite"
+	func ApplyMigrations(context.Context, SQLDB, int, MigrationSet) error
 	func JSONExtract(Dialect, string, string) string
 	func Now(Dialect) string
 	func Rebind(Dialect, string) string
 	func Upsert(Dialect, []string, []string) string
 	type Dialect string
+	type MigrationSet field Postgres []string
+	type MigrationSet field SQLite []string
+	type MigrationSet struct
 	type Record field Key string `json:"key"`
 	type Record field Namespace string `json:"namespace"`
 	type Record field Value []byte `json:"value"`
