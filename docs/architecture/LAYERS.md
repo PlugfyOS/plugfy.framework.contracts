@@ -309,6 +309,25 @@ supervision, observability, and the micro-kernel host-composition. It owns:
 - **Accounts/identity, themes/skins, marketplace/distribution, automatic updates,
   per-edition config**, and multi-tenant governance.
 
+### Deployment & decoupling
+
+Each extensible capability is an **independently-versioned, separately-compiled
+artifact** (one repo = one module/service/plugin/connector/provider/app/theme/
+driver) shipped in **the form that fits its nature** (`process` binary · `wasm` ·
+`lib` · `data`/uischema). The **Platform loader** loads them **dynamically by
+version + compatibility** — **MVS** (minimal version selection) + the **9-axis
+admissibility matrix** — installed **side-by-side** (WinSxS-style), and the
+**resolver/reconciler hot-swaps** a unit's version **at runtime, without
+rebuilding or restarting the whole** (update-without-rebuild). The **core/host**
+— the **Framework engine + contracts** (the linked execution baseplate), the
+**kernel/host loader-supervisor**, the **desktop shell**, and the **SDK** — is
+the thing that *does* the loading or a compile/link dependency of it; it is
+**embedded/updated via the installer/auto-updater, not self-hot-swapped**.
+**Concrete loading/hot-swap is Platform (L3):** the L1 Framework only defines the
+`UnitResolver` **port** and runs pipelines — it never loads or hot-swaps modules.
+Canonical detail:
+[`governance.spine/docs/DECOUPLING-DEPLOYMENT.md`](https://github.com/PlugfyOS/plugfy.platform.governance.spine/blob/main/docs/DECOUPLING-DEPLOYMENT.md).
+
 ## Concrete examples (where a thing lands)
 
 | Concept | Layer | Why |
