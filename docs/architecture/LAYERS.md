@@ -112,6 +112,15 @@ L2 owns:
   here from L1 `contracts/agent` (BR-02, v1.12.12)**: this is the canonical home;
   `platform/system.ai` re-sources the catalog from the SDK. The types still import
   the L1 base SPI (`contracts/spi`, Provider/Kind) — the correct L2→L1 direction.
+- **The gRPC status wire helper** (`foundation.sdk/grpcstatus`) — the
+  `errs.Class`↔gRPC status-code mapping (`Code`, `CodeFor`/`ClassFor`, `Status`,
+  `FromError`/`ToError`). **Relocated here from L1 `contracts/grpcstatus` (NR-06,
+  v1.12.15)**: it is a transport-binding helper a service reaches for when it
+  exposes its operations over gRPC, not a unit/pipeline contract or the engine. It
+  imports the L1 error model (`contracts/errs`) one-way — the correct L2→L1
+  direction — and stays stdlib-only (it names the canonical gRPC codes locally
+  rather than importing `google.golang.org/grpc`), so its move keeps L1 genuinely
+  stdlib-only (resolves bug #10's grpcstatus half).
 - **The UI engine + SDUI / `RenderPath`** (`foundation.ui.engine`).
 - **The CEL `Evaluator` implementation** (`pipeline/application/expr`), the
   **`ModelGateway`** + `node_llm`/`node_ui` handlers, the **action hub**

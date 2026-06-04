@@ -86,8 +86,9 @@ The relocations that crisp L1 down to **unit + pipeline + engine**. These are sh
 - **Accept:** `contracts` no longer ships `installed`; the admissibility matrix has one home in the L3 install/update domain; `system.update` imports it (resolves BR-07).
 
 ### NR-06 (P2) · Relocate the L2 leaf contracts + engine domain handlers to Foundation
-- **Where:** `contracts/api`, `contracts/agent`, the concrete `eventbus` SPI + adapters, `contracts/grpcstatus`, `pipeline/application/action`, `pipeline/application/trigger`, `pipeline/application/expr` (CEL Evaluator impl), `ModelGateway` (`spi/collaborators.go`), `pipeline/application/engine/node_llm.go` + `node_ui.go`.
+- **Where:** `contracts/api`, `contracts/agent` ✅ (BR-02, v1.12.12), `contracts/grpcstatus` ✅ (R2, v1.12.15 → `foundation.sdk/grpcstatus`), the concrete `eventbus` SPI + adapters, `pipeline/application/action`, `pipeline/application/trigger`, `pipeline/application/expr` (CEL Evaluator impl), `ModelGateway` (`spi/collaborators.go`), `pipeline/application/engine/node_llm.go` + `node_ui.go`.
 - **What:** these are domain/capability contracts + concrete handlers — L2 Foundations (trigger hosting is L3, see NR's map; folded under R6 de-domain + R1 host machinery). Wave **R2** (leaf contracts → L2) + **R6** (engine de-domain: CEL impl, ModelGateway, LLM/UI nodes leave the engine).
+- **PARTIAL:** the `agent` and `grpcstatus` leaves have landed in `foundation.sdk`; remaining R2 leaf moves = `contracts/api` + the `eventbus` SPI/adapters.
 - **Accept:** `contracts` exports only L1 leaves; the engine's node set is purely generic (no domain-named node type); CEL/ModelGateway live in Foundation.
 
 ### NR-07 (P3) · Create the explicit Foundation capabilities catalog module
@@ -230,7 +231,7 @@ Defects surfaced while reading the as-built L1. Each is filed as a discrete bug-
 | 7 | **`errclass` substring-based routing** — `IsTimeout/IsCancel/IsTransient` via `strings.Contains`, fragile and locale-dependent. | `pipeline/.../errclass.go` | **IMP-04** — classify via `errors.Is`/`ErrorClass()`; remove the substring fallback. |
 | 8 | **`node_llm`/`node_ui` closed switch in the "agnostic" engine** — domain-named node types hard-wired into the generic engine. | `pipeline/application/engine/node_llm.go`, `node_ui.go` | Subsumed by **BR-06 / NR-06** (LLM/UI nodes + ModelGateway leave the engine). |
 | 9 | **Undocumented two-go.mod L1/L3 seam** in the runtime repo — the nested `framework/` (L1) and the outer module (host machinery) share a repo with no stated boundary. | `runtime/go.mod` + `runtime/framework/go.mod` | Subsumed by **NR-04** (split the repo along the seam, document it). |
-| 10 | **Third-party deps pulled into the framework tier** — `grpcstatus`/otel/redis import non-stdlib packages into a tier that claims stdlib-only. | `contracts/grpcstatus`, eventbus adapters | Relocate the offending packages to L2 (**NR-06**) so the residual L1 is genuinely stdlib-only. |
+| 10 | **`grpcstatus` half ✅ RESOLVED (R2, v1.12.15)** — relocated to `foundation.sdk/grpcstatus`. (It was always stdlib-only — it names the gRPC codes locally rather than importing `google.golang.org/grpc` — but it is a transport-binding helper, not an L1 contract, so it left L1.) Residual: otel/redis non-stdlib deps still in the eventbus adapters. | was `contracts/grpcstatus` → `foundation.sdk/grpcstatus`; remaining = eventbus adapters | Relocate the remaining offending packages to L2 (**NR-06**) so the residual L1 is genuinely stdlib-only. |
 
 ## Wave sequencing (R1–R7)
 
@@ -241,7 +242,7 @@ The relocations execute in dependency order. Each wave maps to the GitHub epic's
 | Wave | Goal | Items | Depends on |
 |---|---|---|---|
 | **R1** | Kernel → L3 (lowest L1 coupling, move early); Ollama → Foundation/AI | NR-03, BR-03, BR-05, bug #6 | — |
-| **R2** | Leaf contracts → L2 (api, agent, eventbus, grpcstatus) | NR-06 (contracts subset), BR-02, IMP-03, bug #10 | — |
+| **R2** ⏳ | Leaf contracts → L2 (api, agent ✅ v1.12.12, grpcstatus ✅ v1.12.15, eventbus) | NR-06 (contracts subset), BR-02 ✅, IMP-03, bug #10 (grpcstatus half ✅) | — |
 | **R3** ✅ | Persistence seam → L2 (atomic re-import + retag + golden-regen) — DONE v1.12.13 | NR-02 ✅, DOC-01 (persistence half) ✅, bug #4 ✅ | **EDB-F2 (#69)** store cutovers landed |
 | **R4** | `installed` (admissibility/manifest/layout) → L3; `RenderPath` → L2 UI | NR-05, BR-04, BR-07, bug #5 | — |
 | **R5** | Micro-kernel machinery split (loader/supervisor/resolver → L3; plugin/wasm → L2); **NR-01 un-embed Provider first** | NR-04, NR-01, BR-01, bugs #1, #2, #9 | un-embed (bug #2) precedes registry move |
