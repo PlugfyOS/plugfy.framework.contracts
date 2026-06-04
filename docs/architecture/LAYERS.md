@@ -94,7 +94,12 @@ L2 owns:
 - **The capabilities catalog** (NEW Foundation module) — the domain `Kind`/capability
   vocabulary (model/embedding/vectorstore/rag/identity/connector/notification/secret/
   storage/database/authorizer).
-- **The persistence seam** (`contracts/persistence`) — `SQLDB`/`MigrationSet`/`RegistryStore`.
+- **The persistence seam** (`plugfy.foundation.persistence`, its own stdlib-only
+  Foundation module) — `SQLDB`/`MigrationSet`/`RegistryStore`. Relocated out of L1
+  `contracts/persistence` (NR-02 / DOC-01, v1.12.13): a pipeline runs with no
+  database, and `ApplyMigrations` literally executes DDL, so persistence is a
+  capability/adapter seam, not an L1 contract. The engine driver
+  (`provider.database`) and every store import it one-way.
 - **The concrete `EventBus` SPI + adapters**, the **api route contract**
   (`contracts/api`), and the **marketplace contract**.
 - **The agent/AI contracts** (`foundation.sdk/agent`) — the Assistant/Event chat

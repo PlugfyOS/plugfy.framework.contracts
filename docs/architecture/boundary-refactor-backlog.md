@@ -31,7 +31,7 @@ The sharpened ruler supersedes the prior phrasing ("framework contains only the 
 | Provider / Kind / registry | **L2** | `contracts/spi/provider.go` + `runtime/registry` → Foundation |
 | transport adapters (native/subprocess plugin tiers + wasm) | **L2** | `runtime/plugin`, `runtime/wasm` → Foundation |
 | capabilities catalog (domain Kind/capability vocabulary) | **L2** | **NEW** Foundation `capabilities` module |
-| persistence seam (SQLDB/MigrationSet/RegistryStore) | **L2** | `contracts/persistence` → Foundation |
+| persistence seam (SQLDB/MigrationSet/RegistryStore) | **L2** | ✅ DONE — relocated `contracts/persistence` → `plugfy.foundation.persistence` (NR-02, v1.12.13) |
 | concrete EventBus SPI + adapters | **L2** | `contracts/spi/eventbus` + adapters → Foundation |
 | api route contract | **L2** | `contracts/api` → Foundation |
 | agent / AI contracts | **L2** | ✅ DONE — relocated `contracts/agent` → `foundation.sdk/agent` (BR-02, v1.12.12) |
@@ -61,12 +61,12 @@ The relocations that crisp L1 down to **unit + pipeline + engine**. These are sh
 - **ABI:** breaking on `spi/core` and `spi/provider`. Golden ABI re-scoped by NR-08.
 - **Accept:** `core.Unit` no longer embeds `spi.Provider`; `contracts` exports no Provider/Kind/registry; Foundation owns the provider contract + registry.
 
-### NR-02 (P1) · Relocate the persistence seam to Foundation
-- **Where:** `contracts/persistence` (`SQLDB`/`MigrationSet`/`RegistryStore`, `persistence.go`/`registry.go`/`migrate.go`).
-- **What:** the persistence seam is an L2 (Foundations) resource, not an L1 contract. Move the whole `contracts/persistence` package to Foundation.
-- **Sequencing:** coordinate with in-flight **EDB-F2 (#69)** — every just-migrated store imports this package, so do the move **AFTER the #69 store cutovers land**, as **one atomic re-import + retag + golden-regen**. Wave **R3** (waits for EDB-F2). Subsumes DOC-01's `migrate.go` relocation.
-- **ABI:** breaking (import path moves for every store).
-- **Accept:** `contracts` no longer ships `persistence`; all stores import the Foundation persistence module; goldens regenerated; `go test` green across the touched repos.
+### NR-02 (P1) · Relocate the persistence seam to Foundation ✅ DONE (v1.12.13, Wave R3)
+- **Where:** was `contracts/persistence` (`SQLDB`/`MigrationSet`/`RegistryStore`, `persistence.go`/`registry.go`/`migrate.go`); now the standalone stdlib-only Foundation module `plugfy.foundation.persistence`.
+- **What:** the persistence seam is an L2 (Foundations) resource, not an L1 contract — a pipeline runs with no database, and `ApplyMigrations` literally executes DDL. Moved the whole package to its own Foundation module (NOT folded into `provider.database`, so contract-only stores never pull pgx/sqlite engine deps). The engine driver and all 15 stores import it one-way.
+- **Sequencing:** executed as **one atomic re-import + retag + golden-regen** after the #69 store cutovers landed. Wave **R3**. Subsumed DOC-01's `migrate.go` relocation and bug #4.
+- **ABI:** breaking (import path moved for every store) — handled atomically with the lockstep v1.12.13 retag.
+- **Accept (met):** `contracts` no longer ships `persistence`; all 18 importers (provider.database, foundation.sdk, platform.server, 15 stores) import `plugfy.foundation.persistence`; golden regenerated (persistence block + surfacePackages entry dropped); `go test` green across the touched repos + clean-cache qa/smoke green.
 
 ### NR-03 (P1) · Relocate the entire kernel repo to Platform L3 — DONE (WAVE R1)
 > **DONE.** The kernel repo is relocated to the Platform tier as `plugfy.platform.kernel` (module `github.com/PlugfyOS/plugfy.platform.kernel`, first tag **v1.12.11**). It had **zero** Go importers (already a dependency leaf), so no consumer re-pin was needed; the L1 `plugfy run` smoke and the clean-cache qa/smoke gate stayed green. The residual item is the Ollama-specialization peel to Foundation/AI, tracked as BR-03 (P3 follow-up).
@@ -207,7 +207,7 @@ The relocations that crisp L1 down to **unit + pipeline + engine**. These are sh
 ## D. Consistência de documentação
 
 ### DOC-01 (P3) · Alinhar "contracts, not implementations" com a realidade
-> **SHARPENED — relocate `persistence/migrate.go` to L2 (subsumed by [NR-02](#nr-02-p1--relocate-the-persistence-seam-to-foundation)).** The whole `contracts/persistence` package (including `migrate.go`, the most "implementation"-like — bug #4: it runs DDL inside the "contracts" module) moves to Foundation. For the residual L1 leaves that ARE reference implementations (`ids` ULID, `resilience` Breaker/Retry/Bulkhead, `idempotency` MemStore), keep them in L1 but **rewrite the module description** to "contracts + stdlib-only reference implementations" (they are part of the unit/pipeline support surface and have zero third-party deps).
+> **✅ persistence half DONE (v1.12.13, via NR-02).** The whole `contracts/persistence` package (including `migrate.go`, the most "implementation"-like — bug #4: it ran DDL inside the "contracts" module) has been relocated to the Foundation module `plugfy.foundation.persistence`, so the "contracts, not implementations" claim now holds for the L1 `contracts` repo. **Residual (P3, open):** for the L1 leaves that ARE reference implementations (`ids` ULID, `resilience` Breaker/Retry/Bulkhead, `idempotency` MemStore), keep them in L1 but **rewrite the module description** to "contracts + stdlib-only reference implementations" (they are part of the unit/pipeline support surface and have zero third-party deps).
 - **Onde:** README do `contracts` vs `ids` (ULID), `resilience` (Breaker/Retry/Bulkhead), `idempotency` (MemStore), `persistence/migrate.go` (ApplyMigrations roda DDL).
 - **Problema:** o L1 contém implementações reais; a frase "contracts, not implementations" é imprecisa.
 - **Mudança:** reescrever a descrição para "contratos + implementações de referência stdlib-only", ou mover `persistence/migrate.go` (a mais "implementação") para fora do L1.
@@ -224,7 +224,7 @@ Defects surfaced while reading the as-built L1. Each is filed as a discrete bug-
 | 1 | **Two unrelated `Kind` types in L1** — `core.Kind` (composition ROLE: tool/agent/app/…) vs `spi.Kind` (provider CATEGORY: model/embedding/…). Same name, different meaning, both exported from L1. | `spi/core/descriptor.go:9`, `spi/provider.go:14` | **Rename `core.Kind` → `Role`** (it is a role tag); `spi.Kind` then relocates with Provider (NR-01). |
 | 2 | **`core.Unit` embeds L2-bound `spi.Provider`** — every Unit IS a Provider today, coupling the L1 brick to an L2 concept. | `spi/core/unit.go:16-17` | Subsumed by **NR-01** (un-embed first, then relocate Provider). |
 | 3 | **Legacy 4-hook `spi.Lifecycle` + `DefaultLifecycle`** parallel to `core.Unit`+`DefaultUnit` — two competing brick contracts in L1; likely dead. | `spi/lifecycle.go:31-36,183-192` | **Verify usage and delete** the legacy `Lifecycle`/`DefaultLifecycle` (keep `LifecycleContext`, which `UnitContext` extends). |
-| 4 | **`ApplyMigrations` runs DDL inside the "contracts" module** — a real implementation in a contracts-tier package. | `contracts/persistence/migrate.go` | Subsumed by **NR-02 / DOC-01** (the whole persistence seam relocates to L2). |
+| 4 | ✅ **RESOLVED (v1.12.13)** — `ApplyMigrations` no longer lives in the contracts module; the whole persistence seam relocated to L2 `plugfy.foundation.persistence` (NR-02 / DOC-01). | was `contracts/persistence/migrate.go` → `plugfy.foundation.persistence/migrate.go` | Done in Wave R3. |
 | 5 | **~600 lines of admissibility matrix duplicated** in `system.update` (the 9-axis compat matrix re-declared, framework package not imported). | `platform/system.update/domain/matrix.go` (+`range.go`/`version.go`/`hostos.go`) | Subsumed by **BR-07 / NR-05** (single L3 home, delete the copy). |
 | 6 | **Updater hard-codes `plugfy.platform.server`** as the release repo default — generic kernel born knowing a specific daemon. | `kernel/updater/updater.go:29` | Subsumed by **NR-03 / BR-05** (kernel→L3; require `SetReleaseSource`). |
 | 7 | **`errclass` substring-based routing** — `IsTimeout/IsCancel/IsTransient` via `strings.Contains`, fragile and locale-dependent. | `pipeline/.../errclass.go` | **IMP-04** — classify via `errors.Is`/`ErrorClass()`; remove the substring fallback. |
@@ -240,7 +240,7 @@ The relocations execute in dependency order. Each wave maps to the GitHub epic's
 |---|---|---|---|
 | **R1** | Kernel → L3 (lowest L1 coupling, move early); Ollama → Foundation/AI | NR-03, BR-03, BR-05, bug #6 | — |
 | **R2** | Leaf contracts → L2 (api, agent, eventbus, grpcstatus) | NR-06 (contracts subset), BR-02, IMP-03, bug #10 | — |
-| **R3** | Persistence seam → L2 (atomic re-import + retag + golden-regen) | NR-02, DOC-01, bug #4 | **EDB-F2 (#69)** store cutovers landed |
+| **R3** ✅ | Persistence seam → L2 (atomic re-import + retag + golden-regen) — DONE v1.12.13 | NR-02 ✅, DOC-01 (persistence half) ✅, bug #4 ✅ | **EDB-F2 (#69)** store cutovers landed |
 | **R4** | `installed` (admissibility/manifest/layout) → L3; `RenderPath` → L2 UI | NR-05, BR-04, BR-07, bug #5 | — |
 | **R5** | Micro-kernel machinery split (loader/supervisor/resolver → L3; plugin/wasm → L2); **NR-01 un-embed Provider first** | NR-04, NR-01, BR-01, bugs #1, #2, #9 | un-embed (bug #2) precedes registry move |
 | **R6** | Engine de-domain (CEL impl, ModelGateway, LLM/UI nodes leave the engine) | NR-06 (engine subset), BR-06, bug #8 | R2 |

@@ -275,63 +275,6 @@ package installed // github.com/PlugfyOS/plugfy.framework.contracts/installed
 	type SystemLayout struct
 	var KnownAreas []Area
 
-package persistence // github.com/PlugfyOS/plugfy.framework.contracts/persistence
-	const DialectPostgres Dialect = "postgres"
-	const DialectSQLite Dialect = "sqlite"
-	func ApplyMigrations(context.Context, SQLDB, int, MigrationSet) error
-	func JSONExtract(Dialect, string, string) string
-	func Now(Dialect) string
-	func Rebind(Dialect, string) string
-	func Upsert(Dialect, []string, []string) string
-	type Dialect string
-	type MigrationSet field Postgres []string
-	type MigrationSet field SQLite []string
-	type MigrationSet struct
-	type Record field Key string `json:"key"`
-	type Record field Namespace string `json:"namespace"`
-	type Record field Value []byte `json:"value"`
-	type Record field Version int64 `json:"version"`
-	type Record struct
-	type RegistryStore interface
-	type RegistryStore method Delete(context.Context, string, string) error
-	type RegistryStore method Get(context.Context, string, string) (Record, error)
-	type RegistryStore method List(context.Context, string) ([]Record, error)
-	type RegistryStore method Scan(context.Context, string, string) ([]Record, error)
-	type RegistryStore method Set(context.Context, Record) (Record, error)
-	type RegistryStore method Tx(context.Context, func(tx RegistryTx) error) error
-	type RegistryTx interface
-	type RegistryTx method Commit() error
-	type RegistryTx method Delete(context.Context, string, string) error
-	type RegistryTx method Get(context.Context, string, string) (Record, error)
-	type RegistryTx method List(context.Context, string) ([]Record, error)
-	type RegistryTx method Rollback() error
-	type RegistryTx method Set(context.Context, Record) (Record, error)
-	type Result interface
-	type Result method LastInsertId() (int64, error)
-	type Result method RowsAffected() (int64, error)
-	type Row interface
-	type Row method Scan(...any) error
-	type Rows interface
-	type Rows method Close() error
-	type Rows method Columns() ([]string, error)
-	type Rows method Err() error
-	type Rows method Next() bool
-	type Rows method Scan(...any) error
-	type SQLDB interface
-	type SQLDB method BeginTx(context.Context, *sql.TxOptions) (Tx, error)
-	type SQLDB method Dialect() Dialect
-	type SQLDB method ExecContext(context.Context, string, ...any) (Result, error)
-	type SQLDB method QueryContext(context.Context, string, ...any) (Rows, error)
-	type SQLDB method QueryRowContext(context.Context, string, ...any) Row
-	type SQLDB method WithTenant(context.Context, string) context.Context
-	type Tx interface
-	type Tx method Commit() error
-	type Tx method ExecContext(context.Context, string, ...any) (Result, error)
-	type Tx method QueryContext(context.Context, string, ...any) (Rows, error)
-	type Tx method QueryRowContext(context.Context, string, ...any) Row
-	type Tx method Rollback() error
-	var ErrNoRows error
-
 package resilience // github.com/PlugfyOS/plugfy.framework.contracts/resilience
 	const StateClosed State = 0
 	const StateHalfOpen State = 2
