@@ -86,12 +86,16 @@ deliberately excludes. **A "capability" is an L2 concept**: L1 has no notion of 
 
 L2 owns:
 
-- **Provider / Kind / registry / unit-manifest** (`foundation.sdk/spi` +
-  `plugfy.foundation.registry`) — every pluggable provider, the provider-category
-  `Kind` + its constants, and the registry that discovers them. **Relocated out of
-  L1 here in SW-3 (v1.12.18), completing NR-01's physical move:** `Provider`/`Kind`
-  are now defined canonically in `foundation.sdk/spi` (no longer in
-  `contracts/spi/provider.go`, which is deleted); the pure provider **index**
+- **Provider / Kind / registry / unit-manifest** (`plugfy.foundation.registry`,
+  re-exported by `foundation.sdk/spi`) — every pluggable provider, the
+  provider-category `Kind` + its constants, and the registry that discovers them.
+  **Relocated out of L1 here in SW-3 (v1.12.18), completing NR-01's physical move:**
+  `Provider`/`Kind` are now defined canonically in the **`plugfy.foundation.registry`**
+  module (the registry IS the provider machinery — it registers/builds `Provider`s by
+  `Kind`, so the contract and its index are one cohesive unit), and `foundation.sdk/spi`
+  re-exports them as aliases for ergonomic authoring (a one-way sdk→registry edge, so
+  the registry module imports NO SDK and there is no cycle). They are no longer in
+  `contracts/spi/provider.go`, which is deleted. The pure provider **index**
   (`Register`/`Build`/`Names`/`Has` + `Factory`/`Options`) and the universal
   **unit manifest** (`unit.plugfy.com/v1` + validator) live in the new stdlib-light
   Foundation module **`plugfy.foundation.registry`** (+ `/manifest`). The
