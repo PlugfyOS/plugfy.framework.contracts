@@ -248,11 +248,26 @@ supervision, observability, and the micro-kernel host-composition. It owns:
   deleted (BR-07). `RenderPath`/`RenderDeclarative`/`RenderCustom` stay here as
   OPAQUE STRING tokens whose enum meaning the L2 UI engine owns (BR-04 satisfied
   by the opaque-string boundary — no L3→L2 inversion).
-- **The micro-kernel loader** (`runtime/loader`), the **supervisor**
-  (`runtime/supervisor`), and the **capability resolver + reconciler**
-  (`runtime/resolver`). The loader imports `plugfy.platform.installed` — an
-  L3→L3 edge (the loader is itself L3-bound, dissolved into Platform in SW-5),
-  not an inversion.
+- **The micro-kernel loader** (`plugfy.platform.kernel/kernel/loader`), the
+  **supervisor** (`plugfy.platform.kernel/kernel/supervisor`, including the
+  generic `plugfy.supervisor.v1` genpb wire contract), the **capability resolver
+  + reconciler** (`plugfy.platform.kernel/kernel/resolver`), and the
+  **supervisor-coupled service discovery** (`plugfy.platform.kernel/kernel/discovery`
+  — the live `ServiceIndex` + on-disk manifest `Discovery`, package renamed
+  `registry`→`discovery` to disambiguate from the L2 `plugfy.foundation.registry`
+  index it imports one-way). **Relocated here from the `plugfy.framework.runtime`
+  outer module in WAVE SW-5 (v1.12.22)**, completing NR-04's host-composition half:
+  this machinery is host-side dynamic composition (SCALE), so it belongs in the
+  micro-kernel Platform repo, not the framework. The loader imports
+  `plugfy.platform.installed` — an L3→L3 edge — and discovery imports the L2
+  registry index/manifest — a correct L3→L2 edge. **Inversion-free:** no L1 package
+  (contracts / pipeline / the nested `framework/` engine / `runner`) imports any of
+  it; the standalone `plugfy run` L1 engine has no kernel dependency. The
+  `plugfy.framework.runtime` outer module now holds only the `plugin`/`wasm`
+  transport adapters (→ L2 in SW-6) + `runner` (→ L1 pipeline in SW-6); its sole
+  remaining kernel edge is `plugin/adapter.go` → the supervisor genpb wire
+  contract (a transitional outer-module→L3 link the SW-6 adapter relocation
+  dissolves).
 - **The entire `plugfy.platform.kernel` repo** (relocated here from the Framework
   engine in WAVE R1 / NR-03) — `config`/edition, `updater`/auto-update,
   `svcmgr`/OS-service, `obs`/observability. (The Ollama specialization in
