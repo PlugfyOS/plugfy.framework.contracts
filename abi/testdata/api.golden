@@ -473,14 +473,9 @@ package spi/core // github.com/PlugfyOS/plugfy.framework.contracts/spi/core
 	type RetryPolicy field Multiplier float64
 	type RetryPolicy field Retryable []string
 	type RetryPolicy struct
-	type Unit embeds spi.Provider
 	type Unit interface
-	type Unit method Capabilities() map[string]any
 	type Unit method Describe() UnitDescriptor
-	type Unit method HealthCheck(context.Context) error
 	type Unit method Invoke(UnitContext, string, map[string]any) (map[string]any, error)
-	type Unit method Kind() spi.Kind
-	type Unit method Name() string
 	type UnitContext embeds spi.LifecycleContext
 	type UnitContext interface
 	type UnitContext method Context() context.Context

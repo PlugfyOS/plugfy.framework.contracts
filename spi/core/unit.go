@@ -7,15 +7,17 @@ import (
 	commonspi "github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
 
-// Unit is the LEGO brick. SUPER SIMPLE by design.
+// Unit is the LEGO brick. SUPER SIMPLE by design — the minimal two-method
+// generative brick: exactly { Describe() UnitDescriptor; Invoke(...) }.
 //
-// It embeds spi.Provider (Name/Kind/Capabilities/HealthCheck) so the EXISTING
-// registry, discovery, health-probe and capability-negotiation machinery work
-// UNCHANGED — a Unit is already a first-class Provider. Over Provider it adds
-// exactly two methods.
+// A Unit does NOT embed spi.Provider. Identity (Name/Kind), capability flags and
+// health are DERIVED from Describe() — the descriptor is the single source of
+// truth. The embeddable DefaultUnit (and PipelineUnit) still expose
+// Name/Kind/Capabilities/HealthCheck as descriptor-derived helpers, so any host
+// that wants a Provider-shaped view of a concrete brick keeps it for free; but
+// the Unit CONTRACT mandates only the two methods, so a brick is the smallest
+// possible thing.
 type Unit interface {
-	commonspi.Provider
-
 	// Describe returns the brick's complete static self-description: identity,
 	// version, typed UI-hinted parameters, the NAMED method set, and declared
 	// capabilities + cross-cutting policy.

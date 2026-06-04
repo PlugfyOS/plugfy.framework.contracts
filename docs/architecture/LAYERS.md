@@ -88,7 +88,10 @@ L2 owns:
 
 - **Provider / Kind / registry** (`contracts/spi/provider.go` + `runtime/registry`)
   — every pluggable provider and the registry that discovers them. (A Unit is **not**
-  a Provider; the embedding is broken on the way out — see the backlog NR-01.)
+  a Provider: as of v1.12.16 `core.Unit` no longer embeds `spi.Provider` — it is the
+  minimal `{ Describe, Invoke }` brick, and identity/kind/capabilities/health derive
+  from `Describe()`. The physical relocation of Provider/Kind/registry into Foundation
+  is the remaining part of backlog NR-01.)
 - **Transport adapters** — the native/subprocess plugin tiers (`runtime/plugin`)
   and the WASM runtime (`runtime/wasm`).
 - **The capabilities catalog** (NEW Foundation module) — the domain `Kind`/capability

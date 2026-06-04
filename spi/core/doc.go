@@ -59,9 +59,10 @@
 // pipeline engine (a Module node drives a core.Unit method through that Runner).
 // It REUSES, not reinvents, the surrounding contract surfaces:
 //
-//   - spi.Provider          — embedded by Unit (Name/Kind/Capabilities/HealthCheck),
-//     so the existing registry/discovery/health/capability machinery works
-//     unchanged: a Unit is already a first-class Provider.
+//   - spi.Provider          — NOT embedded by Unit. A Unit is the minimal
+//     two-method brick { Describe, Invoke }; identity/kind/capabilities/health are
+//     DERIVED from Describe(). The embeddable DefaultUnit still exposes the
+//     Provider-shaped helpers (descriptor-derived) for hosts that want them.
 //   - spi.LifecycleContext  — embedded by UnitContext (identity/tenant/logger/
 //     tracer/state/credentials), extended with only Report/Emit/Deadline/Method.
 //   - events.CloudEvent     — aliased as Event; the brick never duplicates the shape.
