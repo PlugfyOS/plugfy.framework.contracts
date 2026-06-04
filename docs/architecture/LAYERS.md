@@ -74,8 +74,10 @@ standalone job runner (the **CLI** path) that depends on nothing but L1:
 plugfy run <pipeline.v1.json> [--input key=value ...]
 ```
 
-The runner lives in `plugfy.framework.runtime`'s **nested `framework/` module** (the
-inner of the repo's two go.mod modules):
+The standalone job runner + CLI live in `plugfy.framework.runtime`'s **nested
+`framework/` module** (the repo's sole module after WAVE SW-6 dissolved the OUTER
+module). The per-`Invoke` runner envelope it drives lives in L1
+`plugfy.framework.pipeline/runner` (rehomed there in SW-6):
 
 - `framework/cmd/plugfy/main.go` — the `plugfy` binary entry point.
 - `framework/cli/cli.go` — the `run` subcommand: load a `pipeline.v1` document,
@@ -106,14 +108,15 @@ proven by a binary you can run.
 > OUT of L1 to the composition root (the platform server wiring) — the born-correct
 > dependency inversion (L1 provides, L2/L3 wires). `go mod tidy` consequently dropped
 > `plugfy.foundation.{registry,sdk}` from the pipeline and the nested framework
-> module graphs. (Follow-up: a CI decouple-check that fails if any L1 module imports
-> foundation/platform would make this decision machine-checked; flagged in the
-> boundary backlog. The CEL `cel-go` third-party dep in the pipeline is a SEPARATE
-> concern, SW-7c, not a foundation/platform module dep.)
+> module graphs. The CI decouple-check that fails if any L1 engine package imports
+> foundation/platform is now wired (the `plugfy.framework.runtime` CI build job greps
+> the engine module for `plugfy.foundation`/`plugfy.platform` and fails on a hit), so
+> this decision is machine-checked. The CEL `cel-go` third-party dep in the pipeline
+> is a SEPARATE concern, SW-7c, not a foundation/platform module dep.
 
 ### The crisp post-relocation L1 surface
 
-After the relocations in the backlog, L1 contains exactly:
+With the boundary relocations complete (through SW-6), L1 contains exactly:
 
 | Concern | Package |
 |---|---|
@@ -122,7 +125,7 @@ After the relocations in the backlog, L1 contains exactly:
 | The `Evaluator` **port** | `contracts/spi/evaluator` |
 | The `pipeline` contract — `Pipeline`/`Node`/`Edge`/`NodeType`/`PipelineEngine`/`UnitResolver`/`NodeRunner` + generic collaborators `ModuleDispatcher`/`JobsQueue` | `pipeline/contracts/spi` |
 | The pipeline engine — generic nodes + `pipelineunit` + the `domain/pipeline` graph + `errclass` | `pipeline/application/engine`, `pipeline/domain/pipeline` |
-| The per-`Invoke` Runner | `pipeline` Runner |
+| The per-`Invoke` Runner envelope | `pipeline/runner` (rehomed from the framework.runtime OUTER module in SW-6) |
 | The standalone job runner + CLI + demo builtin | `runtime/framework` (`cmd/plugfy`, `cli`, `job`, `builtin`) |
 | Pure support leaves (zero third-party deps) — `events.CloudEvent`, `errs` error-class, `ids.ULID`, `resilience` reference impl, `idempotency.Store` port | `contracts/events`, `contracts/errs`, `contracts/ids`, `contracts/resilience`, `contracts/idempotency` |
 
@@ -206,8 +209,19 @@ L2 owns:
   The dedicated `plugfy.foundation.capabilities` catalog that will own the DOMAIN
   Kind vocabulary remains a later wave (SW-8 / NR-07; the domain constants ride with
   the type in `sdk/spi` for now).
-- **Transport adapters** — the native/subprocess plugin tiers (`runtime/plugin`)
-  and the WASM runtime (`runtime/wasm`).
+- **The unit-transport seam** (`plugfy.foundation.transport`, its own
+  third-party-leaf Foundation module) — the native/subprocess **`plugin`** tiers
+  (Native + go-plugin/gRPC subprocess) + the `Invoker`/`Loader` contract + the
+  `InvokeAdapter`, the WASM **`wasm`** runtime (wazero Tier-3), and the generic
+  **`supervisorwire`** wire contract (the `plugfy.supervisor.v1` proto + genpb).
+  **Relocated here from the `plugfy.framework.runtime` OUTER module in WAVE SW-6
+  (v1.12.25)**: these tiers pull third-party runtime libraries (notably wazero)
+  that must not sit in the lean L1 engine, and co-locating the supervisor wire
+  contract with the local transports that speak it removed the prior L2→L3 edge
+  (the `plugin` adapter no longer imports the L3 kernel's proto). The module is a
+  pure third-party leaf — it requires ZERO plugfy modules and imports no L1 and no
+  L3 package. The L3 kernel re-publishes the generated wire types at its
+  established import path as a thin re-export for its domain-service consumers.
 - **The capabilities catalog** (NEW Foundation module) — the domain `Kind`/capability
   vocabulary (model/embedding/vectorstore/rag/identity/connector/notification/secret/
   storage/database/authorizer).
@@ -282,8 +296,11 @@ supervision, observability, and the micro-kernel host-composition. It owns:
   OPAQUE STRING tokens whose enum meaning the L2 UI engine owns (BR-04 satisfied
   by the opaque-string boundary — no L3→L2 inversion).
 - **The micro-kernel loader** (`plugfy.platform.kernel/loader`), the
-  **supervisor** (`plugfy.platform.kernel/supervisor`, including the
-  generic `plugfy.supervisor.v1` genpb wire contract), the **capability resolver
+  **supervisor** (`plugfy.platform.kernel/supervisor`, which IMPLEMENTS the generic
+  `plugfy.supervisor.v1` contract — the contract's proto + generated wire types now
+  live in L2 `plugfy.foundation.transport/supervisorwire` after WAVE SW-6; the
+  kernel re-publishes them at its established `supervisor/contracts/genpb/supervisorv1`
+  path as a thin re-export for its domain-service consumers), the **capability resolver
   + reconciler** (`plugfy.platform.kernel/resolver`), and the
   **supervisor-coupled service discovery** (`plugfy.platform.kernel/discovery`
   — the live `ServiceIndex` + on-disk manifest `Discovery`, package renamed
@@ -300,12 +317,16 @@ supervision, observability, and the micro-kernel host-composition. It owns:
   `plugfy.platform.installed` — an L3→L3 edge — and discovery imports the L2
   registry index/manifest — a correct L3→L2 edge. **Inversion-free:** no L1 package
   (contracts / pipeline / the nested `framework/` engine / `runner`) imports any of
-  it; the standalone `plugfy run` L1 engine has no kernel dependency. The
-  `plugfy.framework.runtime` outer module now holds only the `plugin`/`wasm`
-  transport adapters (→ L2 in SW-6) + `runner` (→ L1 pipeline in SW-6); its sole
-  remaining kernel edge is `plugin/adapter.go` → the supervisor genpb wire
-  contract (a transitional outer-module→L3 link the SW-6 adapter relocation
-  dissolves).
+  it; the standalone `plugfy run` L1 engine has no kernel dependency. **WAVE SW-6
+  (v1.12.25) dissolved the `plugfy.framework.runtime` OUTER module entirely:** its
+  `plugin`/`wasm` transport adapters + the supervisor wire contract relocated to L2
+  `plugfy.foundation.transport`, and `runner` rehomed to L1
+  `plugfy.framework.pipeline`. The former transitional outer-module→L3 edge
+  (`plugin/adapter.go` → the kernel's supervisor genpb) is GONE — `plugin` now imports
+  the L2 `supervisorwire` proto, and the L3 kernel supervisor imports that same L2
+  proto, so both the transport and the supervisor implementation depend on the
+  contract DOWN the layers. The repo now contains only the nested L1 `framework/`
+  engine.
 - **The entire `plugfy.platform.kernel` repo** (relocated here from the Framework
   engine in WAVE R1 / NR-03) — `config`/edition, `updater`/auto-update,
   `svcmgr`/OS-service, `obs`/observability. (The Ollama specialization in
