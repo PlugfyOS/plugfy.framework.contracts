@@ -114,10 +114,11 @@ L3 is the ecosystem that **scales** those apps — host-side operation. It owns:
 - **The micro-kernel loader** (`runtime/loader`), the **supervisor**
   (`runtime/supervisor`), and the **capability resolver + reconciler**
   (`runtime/resolver`).
-- **The entire `plugfy.framework.kernel` repo** — `config`/edition,
-  `updater`/auto-update, `svcmgr`/OS-service, `obs`/observability. (The Ollama
-  specialization in `depsupervisor` peels to Foundation/AI; the generic
-  "ensure dependency process X is ready" mechanism stays.)
+- **The entire `plugfy.platform.kernel` repo** (relocated here from the Framework
+  engine in WAVE R1 / NR-03) — `config`/edition, `updater`/auto-update,
+  `svcmgr`/OS-service, `obs`/observability. (The Ollama specialization in
+  `depsupervisor` peels to Foundation/AI per BR-03; the generic "ensure dependency
+  process X is ready" mechanism stays with the kernel.)
 - **Trigger hosting** (`pipeline/application/trigger`) — cron/webhook/HMAC.
 - Marketplace/distribution and multi-tenant governance.
 

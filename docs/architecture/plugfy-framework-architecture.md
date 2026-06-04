@@ -1464,7 +1464,7 @@ Formato **estímulo → resposta → métrica**.
 ### Apêndice C — Índice de módulos
 
 `github.com/PlugfyOS/`:
-- `plugfy.framework.contracts` (L1) · `plugfy.framework.runtime` (L3) · `plugfy.framework.pipeline` (L3) · `plugfy.framework.kernel` (L4)
+- `plugfy.framework.contracts` (L1) · `plugfy.framework.runtime` (L3) · `plugfy.framework.pipeline` (L3) · `plugfy.platform.kernel` (Platform L3 — host-side support, relocated from the Framework engine per NR-03)
 
 ### Apêndice D — Métricas (ordem de grandeza)
 

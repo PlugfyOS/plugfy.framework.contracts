@@ -45,7 +45,7 @@ The sharpened ruler supersedes the prior phrasing ("framework contains only the 
 | micro-kernel loader | **L3** | `runtime/loader` → Platform |
 | supervisor | **L3** | `runtime/supervisor` → Platform |
 | capability resolver + reconciler | **L3** | `runtime/resolver` → Platform |
-| entire `plugfy.framework.kernel` (config/edition, updater/auto-update, svcmgr/OS-service, obs/observability) | **L3** | `plugfy.framework.kernel` → Platform |
+| entire kernel repo (config/edition, updater/auto-update, svcmgr/OS-service, obs/observability) | **L3** | `plugfy.platform.kernel` (relocated, NR-03 ✓) |
 | trigger hosting (cron/webhook/HMAC) | **L3** | `pipeline/application/trigger` → Platform |
 
 > Original ruler (kept for traceability): *the framework contains only the **generic mechanism**; domain category/contract/implementation lives in Foundation/Platform; generic mechanism found in Foundation/Platform descends to the framework.* The map above is the sharpened, positive form.
@@ -68,11 +68,12 @@ The relocations that crisp L1 down to **unit + pipeline + engine**. These are sh
 - **ABI:** breaking (import path moves for every store).
 - **Accept:** `contracts` no longer ships `persistence`; all stores import the Foundation persistence module; goldens regenerated; `go test` green across the touched repos.
 
-### NR-03 (P1) · Relocate the entire `plugfy.framework.kernel` repo to Platform L3
-- **Where:** `plugfy.framework.kernel` (config/edition, updater/auto-update, svcmgr/OS-service, obs/observability, depsupervisor).
-- **What:** the whole kernel repo is host-side **operation** (SCALE) — per-edition config, auto-update, install-as-OS-service, observability — i.e. L3 Platform. Relocate it as a Platform repo. The **Ollama specialization peels to Foundation/AI** (the generic "ensure dependency process X is ready" mechanism stays; the LLM/embedding specifics go to the AI domain).
-- **Sequencing:** **lowest L1 coupling — move early.** Wave **R1**.
-- **Accept:** no `plugfy.framework.*` repo carries edition/updater/svcmgr/obs; the kernel lives under Platform; Ollama lives in Foundation/AI.
+### NR-03 (P1) · Relocate the entire kernel repo to Platform L3 — DONE (WAVE R1)
+> **DONE.** The kernel repo is relocated to the Platform tier as `plugfy.platform.kernel` (module `github.com/PlugfyOS/plugfy.platform.kernel`, first tag **v1.12.11**). It had **zero** Go importers (already a dependency leaf), so no consumer re-pin was needed; the L1 `plugfy run` smoke and the clean-cache qa/smoke gate stayed green. The residual item is the Ollama-specialization peel to Foundation/AI, tracked as BR-03 (P3 follow-up).
+- **Where:** `plugfy.platform.kernel` (config/edition, updater/auto-update, svcmgr/OS-service, obs/observability, depsupervisor).
+- **What:** the whole kernel repo is host-side **operation** (SCALE) — per-edition config, auto-update, install-as-OS-service, observability — i.e. L3 Platform. Relocated as a Platform repo. The **Ollama specialization peels to Foundation/AI** (the generic "ensure dependency process X is ready" mechanism stays; the LLM/embedding specifics go to the AI domain) — see BR-03.
+- **Sequencing:** **lowest L1 coupling — moved early.** Wave **R1** ✓.
+- **Accept (met):** no `plugfy.framework.*` repo carries edition/updater/svcmgr/obs; the kernel lives under Platform (`plugfy.platform.kernel`). Ollama-to-Foundation/AI remains as BR-03.
 
 ### NR-04 (P1) · Relocate the runtime repo's OUTER micro-kernel module to L2/L3
 - **Where:** `plugfy.framework.runtime` — the OUTER go.mod (the repo root: `loader`, `supervisor`, `resolver`/reconciler, `plugin` tiers, `wasm`, `manifest`).
@@ -117,9 +118,9 @@ The relocations that crisp L1 down to **unit + pipeline + engine**. These are sh
 - **Aceite:** `contracts` não exporta tipos de agente; autores declaram `AgentDef` importando o módulo de IA.
 - **Contraponto (registrar na issue):** hoje está no L1 *de propósito* para o autor declarar agente sem depender de `system.ai` (`agent/ai.go:9-18`). Decidir explicitamente: manter-com-justificativa **ou** mover. Não deixar implícito.
 
-### BR-03 (P2) · Tirar o dep-supervisor do Ollama do kernel
-> **SHARPENED — the whole kernel leaves L1, not just Ollama.** Subsumed by [NR-03](#nr-03-p1--relocate-the-entire-plugfyframeworkkernel-repo-to-platform-l3): the entire `plugfy.framework.kernel` repo relocates to Platform L3; the generic dep-supervisor mechanism stays with the kernel (now L3) and the Ollama specialization peels to Foundation/AI.
-- **Onde:** `kernel/depsupervisor/ollama.go`; `kernel/config` `ModelConfig{OllamaHost,OllamaAuto}`.
+### BR-03 (P3) · Tirar o dep-supervisor do Ollama do kernel — remaining follow-up after NR-03
+> **NR-03 DONE; BR-03 is the residual P3 peel.** The kernel repo has relocated to Platform L3 as `plugfy.platform.kernel` (NR-03 ✓). The generic dep-supervisor mechanism now lives there (L3); what remains is peeling the **Ollama specialization** to Foundation/AI — a P3 hygiene follow-up, tracked as its own issue, NOT a blocker on R1.
+- **Onde:** `plugfy.platform.kernel/depsupervisor/ollama.go`; `plugfy.platform.kernel/config` `ModelConfig{OllamaHost,OllamaAuto}`.
 - **Problema:** o kernel genérico sabe achar/subir/baixar um servidor LLM e um modelo de embedding — domínio de IA hard-coded.
 - **Mudança:** o `depsupervisor` deveria ser um **mecanismo genérico** ("garanta que o processo de dependência X esteja pronto") e a especialização Ollama virar uma unidade/extensão do domínio de IA. Tirar `ModelConfig` Ollama do god-config do kernel.
 - **Aceite:** `kernel` não menciona Ollama/embedding; a garantia de Ollama vive no domínio de IA.
