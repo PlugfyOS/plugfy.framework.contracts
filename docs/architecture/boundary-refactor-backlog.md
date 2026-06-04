@@ -4,17 +4,19 @@
 
 > Actionable items derived from the boundary audit (framework ⇄ foundation ⇄ platform) and the as-built implementation analysis. Each item is ready to become a GitHub issue. Severity: **P1** (fix), **P2** (important), **P3** (smell/debt).
 
+> **This refactor realizes the confirmed canonical definition:** the **framework is unit + pipeline + execution, and nothing of domain/webhooks** — no HTTP, gRPC, WebSockets, UI, persistence, accounts, or triggers. Communication modules are Foundations (L2); trigger/webhook hosting is Platform (L3); the engine's domain remnants (node_llm/node_ui/trigger/CEL) are removed (wave SW-7). Every relocation below moves a package out of L1 to land the framework at exactly those three concepts.
+
 ## The ruler: three layers, three verbs
 
-**Three layers, three verbs: Framework RUNS pipelines · Foundations BUILDS apps · Platform SCALES apps.**
+**Three layers, three verbs: Framework DEFINES & RUNS pipelines · Foundations BUILDS apps/services/scripts · Platform SCALES them into a governed ecosystem.**
 
 This is the canonical boundary decision and the discriminator for every package below. Each concept lands in exactly one layer.
 
-- **L1 Framework** = ONLY the `unit` contract + the `pipeline` contract + the minimal engine that executes a pipeline. With unit+pipeline alone the engine runs a complete, complex pipeline — proven by the standalone `plugfy run <doc>` job runner in `plugfy.framework.runtime`'s nested `framework/` module (`framework/cmd/plugfy/main.go` + `framework/cli/cli.go` + `framework/job/runner.go`). Pure, stdlib-only, domain-agnostic. It knows nothing of capabilities, providers, persistence, UI, hosts, or editions.
-- **L2 Foundations** = everything needed to BUILD an app on the framework — UI + backend + all necessary resources. It extends the framework with providers, adapters, capabilities, the SDK, the UI engine, the persistence seam, AI/agent contracts, and connectors. **"Capability" is a Foundations concept, not a Framework one.**
-- **L3 Platform** = the ecosystem that SCALES those apps — host-side operation: per-edition configuration, install-as-OS-service, auto-update, supervision, observability, the micro-kernel host-composition/loader, marketplace/distribution, and multi-tenant governance.
+- **L1 Framework** = EXACTLY three concepts — **unit + pipeline + execution**: the `unit` contract + the `pipeline` contract + the engine + runner that execute them. With unit + pipeline + execution alone you can define and run a complete, complex, async pipeline — proven by the standalone `plugfy run <doc>` job runner in `plugfy.framework.runtime`'s nested `framework/` module (`framework/cmd/plugfy/main.go` + `framework/cli/cli.go` + `framework/job/runner.go`). Used as a Go library you import OR via the `plugfy` CLI. Pure, stdlib-only, domain-agnostic. It knows nothing of capabilities, providers, persistence, UI, hosts, editions, accounts, or triggers — **no webhooks, HTTP, gRPC, or WebSockets**.
+- **L2 Foundations** = everything needed to BUILD a complete, modern, manageable app, service, or script on the framework. It extends the framework's unit/pipeline/execution with extensions, modules, plugins, providers, adapters, capabilities, the SDK, the UI/SDUI engine, the persistence seam, AI/agent contracts, the communication modules (gRPC, WebSockets, HTTP/REST), and connectors. Two authoring modes: embedded-in-Go or no/low-code. **"Capability" is a Foundations concept, not a Framework one.**
+- **L3 Platform** = the ecosystem that SCALES those apps, services, and agents into a **governed ecosystem** — host-side operation: enterprise governance, the multi-app platform, marketplace, automatic updates, accounts/identity, themes/skins, per-edition configuration, install-as-OS-service, supervision, observability, the micro-kernel host-composition/loader, and trigger/webhook hosting.
 
-The sharpened ruler supersedes the prior phrasing ("framework contains only the generic mechanism; domain category/contract/implementation lives in Foundation/Platform"): the generic mechanism that STAYS in L1 is now defined positively and minimally as **unit + pipeline + the engine that runs them** — everything else (every provider, every capability, every host concern) relocates out.
+The sharpened ruler supersedes the prior phrasing ("framework contains only the generic mechanism; domain category/contract/implementation lives in Foundation/Platform"): the generic mechanism that STAYS in L1 is now defined positively and minimally as **unit + pipeline + execution** (the engine + runner that run them) — everything else (every provider, every capability, every communication module, every host concern) relocates out.
 
 ### Responsibility map (each concept → exactly one layer)
 

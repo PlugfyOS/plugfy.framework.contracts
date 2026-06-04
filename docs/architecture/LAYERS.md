@@ -10,31 +10,58 @@
 
 ## The ruler
 
-**Three layers, three verbs: Framework RUNS pipelines · Foundations BUILDS apps · Platform SCALES apps.**
+**Three layers, three verbs: Framework DEFINES & RUNS pipelines · Foundations BUILDS apps/services/scripts · Platform SCALES them into a governed ecosystem.**
 
-That single sentence is the discriminator. To place any concept, ask which verb it
-serves:
+That single sentence is the canonical project definition and the discriminator for
+every package. To place any concept, ask which verb it serves:
 
-- Does it **run a pipeline** (the unit contract, the pipeline contract, the engine
-  that executes them)? → **L1 Framework**.
-- Is it something you need to **build an app** on the framework (a provider, the
-  SDK, the UI engine, the persistence seam, an AI/agent contract, a connector)? →
-  **L2 Foundations**. **"Capability" is a Foundations concept, not a Framework one.**
-- Is it host-side **operation that scales apps** (per-edition config,
-  install-as-OS-service, auto-update, supervision, observability, the micro-kernel
-  loader, marketplace/distribution, multi-tenant governance)? → **L3 Platform**.
+- Does it **define or run a pipeline** (the unit contract, the pipeline contract,
+  the engine and runner that execute them)? → **L1 Framework**.
+- Is it something you need to **build** a complete, modern, manageable app,
+  service, or script on the framework (an extension, module, plugin, provider,
+  adapter, capability — the SDK, the UI/SDUI engine, the persistence seam, an
+  AI/agent contract, a communication module, a connector)? → **L2 Foundations**.
+  **"Capability" is a Foundations concept, not a Framework one.**
+- Is it host-side **operation that scales those apps/services/agents into a governed
+  ecosystem** (enterprise governance, the multi-app platform, marketplace,
+  automatic updates, accounts/identity, themes/skins, per-edition config,
+  install-as-OS-service, supervision, observability, the micro-kernel
+  host-composition/loader)? → **L3 Platform**.
 
-## L1 Framework — RUNS pipelines
+## L1 Framework — DEFINES & RUNS pipelines
 
-L1 is **only** the `unit` contract + the `pipeline` contract + the minimal engine
-that executes a pipeline. It is pure, **stdlib-only**, and domain-agnostic: it
-knows nothing of capabilities, providers, persistence, UI, hosts, or editions.
+L1 is **exactly three concepts — Unit + Pipeline + Execution.** You **define**
+units, **compose** them into pipelines, and **execute** those pipelines —
+**asynchronously**. It is pure, **stdlib-only**, and domain-agnostic: it knows
+nothing of capabilities, providers, persistence, UI, hosts, editions, accounts, or
+triggers. With unit + pipeline + execution alone you can define and run a complete,
+complex, async pipeline.
+
+The framework **knows nothing domain-specific**: there are **no webhooks, no HTTP,
+no gRPC, no WebSockets, no UI, no persistence, no accounts, no triggers** in it.
+Those are not framework concerns — **communication modules (gRPC, WebSockets,
+HTTP/REST) are Foundations (L2)** and **trigger/webhook hosting is Platform (L3)**.
+The framework's remaining domain remnants (`node_llm`/`node_ui` handlers, the
+trigger node, the in-engine CEL implementation) are not L1 and are being removed
+(wave SW-7); see [`boundary-refactor-backlog.md`](boundary-refactor-backlog.md).
+
+### The two ways to use the framework
+
+The framework is consumed **asynchronously** in exactly two ways:
+
+1. **As a Go library you import** — embed the engine in your own Go program, build
+   units and pipelines in code, and run them in-process.
+2. **Via the `plugfy` CLI** — pass a pipeline document plus parameters to the
+   standalone job runner and execute it from the command line.
+
+Both paths drive the same `core.Unit` = `{Describe, Invoke}` brick, the same
+`Pipeline` that composes units recursively, and the same engine + runner.
 
 ### The empirical proof: `plugfy run <doc>`
 
-The claim that *unit + pipeline alone* are enough to run a complete, complex
-pipeline is not aspirational — it is demonstrated by a standalone job runner that
-depends on nothing but L1:
+The claim that *unit + pipeline + execution alone* are enough to define and run a
+complete, complex, async pipeline is not aspirational — it is demonstrated by the
+standalone job runner (the **CLI** path) that depends on nothing but L1:
 
 ```
 plugfy run <pipeline.v1.json> [--input key=value ...]
@@ -78,11 +105,24 @@ After the relocations in the backlog, L1 contains exactly:
 > and `idempotency` (MemStore) are real implementations, but they have **no
 > third-party dependencies** and exist to make unit+pipeline runnable on their own.
 
-## L2 Foundations — BUILDS apps
+## L2 Foundations — BUILDS apps/services/scripts
 
-L2 is everything you need to **build an app** on the framework — UI + backend + all
-the necessary resources. It extends L1 with the concrete machinery that L1
-deliberately excludes. **A "capability" is an L2 concept**: L1 has no notion of one.
+L2 is everything you need to **build** a complete, modern, manageable app, service,
+or script on the framework — UI + backend + all the necessary resources. It extends
+the framework's unit/pipeline/execution with **extensions, modules, plugins,
+providers, adapters, and capabilities**: a progress reporter, the communication
+modules (gRPC, WebSockets, HTTP/REST), persistence, UI/SDUI, the AI/agent contracts,
+and the SDK. **A "capability" is an L2 concept**: L1 has no notion of one.
+Foundations gives the Platform all the building blocks it needs to scale.
+
+### The two ways to author on Foundations
+
+Foundations supports **two authoring modes**:
+
+1. **Embedded in a Go app** — import the SDK and write a compiled unit, service, or
+   app in code.
+2. **No/low-code** — declare the app declaratively (the `app.v1` artifact: uischema
+   + pipeline + agent facets) and let the framework-as-runtime execute it.
 
 L2 owns:
 
@@ -171,9 +211,13 @@ L2 owns:
   Foundation by design (see the backlog BR-08 ADR). It now also **hosts** the
   canonical agent/AI contracts (above).
 
-## L3 Platform — SCALES apps
+## L3 Platform — SCALES them into a governed ecosystem
 
-L3 is the ecosystem that **scales** those apps — host-side operation. It owns:
+L3 is the ecosystem that **scales** everything Foundations builds — apps, services,
+**and** agents — into a **governed ecosystem**. It is host-side operation:
+enterprise governance, the multi-app platform, the marketplace, automatic updates,
+accounts/identity, themes/skins, per-edition config, install-as-OS-service,
+supervision, observability, and the micro-kernel host-composition. It owns:
 
 - **`installed` / admissibility / manifest / layout** (`contracts/installed`) — the
   single home of the compatibility matrix.
@@ -185,8 +229,23 @@ L3 is the ecosystem that **scales** those apps — host-side operation. It owns:
   `svcmgr`/OS-service, `obs`/observability. (The Ollama specialization in
   `depsupervisor` peels to Foundation/AI per BR-03; the generic "ensure dependency
   process X is ready" mechanism stays with the kernel.)
-- **Trigger hosting** (`pipeline/application/trigger`) — cron/webhook/HMAC.
-- Marketplace/distribution and multi-tenant governance.
+- **Trigger/webhook hosting** (`pipeline/application/trigger`) — cron/webhook/HMAC.
+  Trigger hosting is a Platform concern: the framework has no triggers, and the
+  communication modules a trigger listens on are Foundations.
+- **Accounts/identity, themes/skins, marketplace/distribution, automatic updates,
+  per-edition config**, and multi-tenant governance.
+
+## Concrete examples (where a thing lands)
+
+| Concept | Layer | Why |
+|---|---|---|
+| `Unit` (`{Describe, Invoke}`), `Pipeline`, the engine + runner, `plugfy run` | **L1** | define & run a pipeline — the three concepts, nothing more |
+| A **progress reporter** | **L2** | a module you reach for to BUILD a richer app |
+| **gRPC / WebSockets / HTTP-REST** communication modules | **L2** | communication is a build-an-app concern, never the framework |
+| **Persistence**, **UI/SDUI**, **AI/agent contracts**, the **SDK**, connectors, capabilities | **L2** | building blocks Foundations gives the Platform |
+| **Marketplace**, **automatic updates**, **accounts/identity** | **L3** | scaling apps into a governed ecosystem |
+| **Themes / skins**, **per-edition config**, **install-as-OS-service** | **L3** | host-side operation of the ecosystem |
+| **Trigger / webhook hosting**, supervision, observability, the micro-kernel loader | **L3** | host-side operation, not framework |
 
 ## Why the line falls here
 
@@ -194,10 +253,12 @@ The earlier ruler said "the framework contains only the generic mechanism; domai
 category/contract/implementation lives in Foundation/Platform." That is correct but
 under-specified — it does not say *how small* the generic mechanism is. The
 sharpened ruler answers that positively and minimally: the generic mechanism that
-stays in L1 is **unit + pipeline + the engine that runs them**, and the `plugfy run`
-binary proves that is a complete, self-contained whole. Everything else — every
-provider, every capability, every host concern — is one of the other two verbs and
-relocates accordingly.
+stays in L1 is **unit + pipeline + execution** (the engine + runner that run them),
+and the `plugfy run` binary proves that is a complete, self-contained whole.
+Everything else — every provider, every capability, every communication module,
+every host concern — is one of the other two verbs and relocates accordingly. This
+is why webhooks/triggers/gRPC/WebSockets are **not** framework: communication
+modules are Foundations (L2), and trigger/webhook hosting is Platform (L3).
 
 The full per-package verdicts, the relocation items (NR-01…NR-08), the
 reconciliation with the prior backlog (BR/IMP/DOC), the bug list, and the wave

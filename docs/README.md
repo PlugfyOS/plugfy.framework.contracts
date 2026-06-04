@@ -6,7 +6,7 @@ Documentação de arquitetura e análise do **Plugfy Framework** (`contracts` ·
 
 | Documento | Conteúdo |
 |---|---|
-| [**The Three Layers (canonical)**](architecture/LAYERS.md) | The canonical boundary model: **Framework RUNS pipelines · Foundations BUILDS apps · Platform SCALES apps.** What belongs in L1 / L2 / L3, why the line falls there, and the empirical `plugfy run` proof of the crisp L1 surface. The placement ruler for the whole codebase. |
+| [**The Three Layers (canonical)**](architecture/LAYERS.md) | The canonical boundary model: **Framework DEFINES & RUNS pipelines · Foundations BUILDS apps/services/scripts · Platform SCALES them into a governed ecosystem.** What belongs in L1 / L2 / L3, why the line falls there, and the empirical `plugfy run` proof of the crisp L1 surface. The placement ruler for the whole codebase. |
 | [Boundary-refactor backlog](architecture/boundary-refactor-backlog.md) | The actionable backlog that brings the as-built tree into line with the three-layer model: the responsibility map, the relocation items (NR-01…NR-08), the BR/IMP/DOC reconciliation, the bug list, and the wave sequencing (R1–R7). |
 | [**Documento de Arquitetura**](architecture/plugfy-framework-architecture.md) | Arquitetura de referência do framework — **o que ele é capaz de fazer e como faz**, com exemplos do simples ao complexo. Estruturado em **arc42**, com diagramas **C4/Mermaid**, decisões em **ADR (Nygard)** e qualidade em **ISO/IEC 25010:2023**. *Escopo: apenas o framework (domain-agnostic).* |
 | [Análise Comparativa (legado × atual)](analisys/comparative-complete-detailed-old-x-new-version-plugfy-framework.md) | Comparação detalhada entre a solução Plugfy legada (.NET) e a atual. *Documento de análise histórica, com escopo mais amplo.* |

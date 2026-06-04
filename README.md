@@ -12,6 +12,15 @@ into a host environment (desktop, server, or cloud tenant) and operates those
 capabilities on top of it. `plugfy-common` is the contract layer at
 the bottom of that framework: the normative interfaces everything else agrees on.
 
+> **The layer model (canonical).** Three layers, three verbs: **Framework DEFINES &
+> RUNS pipelines · Foundations BUILDS apps/services/scripts · Platform SCALES them
+> into a governed ecosystem.** This module is **L1 — the Framework**: it holds the
+> contracts for the framework's three concepts — **Unit + Pipeline + Execution** —
+> and nothing domain-specific (no webhooks, HTTP, gRPC, WebSockets, UI,
+> persistence, accounts, or triggers; communication modules are Foundations,
+> trigger hosting is Platform). Canon:
+> [`LAYERS.md`](https://github.com/PlugfyOS/plugfy.framework.contracts/blob/main/docs/architecture/LAYERS.md).
+
 ## What it is
 
 `plugfy-common` publishes the generic, stable primitives that hold up the
