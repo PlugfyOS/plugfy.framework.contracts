@@ -1,0 +1,18 @@
+name: decouple-check
+# DC-1 — machine-checks the current documented dependency-direction decision:
+# the L1 Framework contracts depend on nothing from L2 Foundation or L3 Platform.
+# Documented and adjustable — see scripts/decouple-check.sh. Verified here in CI.
+on:
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+jobs:
+  decouple-check:
+    runs-on: ubuntu-latest
+    env:
+      GOWORK: "off"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.25", cache: true }
+      - name: L1 dependency-direction check (no L2/L3 imports)
+        run: sh scripts/decouple-check.sh

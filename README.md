@@ -88,7 +88,7 @@ tenant scope, structured logger, tracer, scoped state, and credential accessor.
 ```bash
 GOWORK=off go build ./...
 GOWORK=off go test -race ./...
-bash scripts/decouple-check.sh   # enforces stdlib-only + zero unit imports
+sh scripts/decouple-check.sh   # DC-1: L1 imports nothing from L2 Foundation / L3 Platform
 ```
 
 ## ABI stability (the guarded public surface)
@@ -112,18 +112,27 @@ GOWORK=off go test ./abi -run TestGoldenABI -update
 The test is stdlib-only (`go/ast`, `go/parser`, `go/types`, `go/importer`), so it
 adds no module dependency and the decoupling gate still holds.
 
-## Rule (current documented decision)
+## Dependency direction (current documented decision)
 
-This is the dependency rule we hold today — documented so it can be analyzed and
-adjusted if the design needs it, not a permanent law. Under it, `plugfy-common`
+This is the dependency decision we hold today — documented so it can be analyzed
+and adjusted if the design needs it, not a permanent law. Under it, `plugfy-common`
 is **L1**: the root of the dependency arrow. It **imports only the standard
-library** and **no** other `PlugfyOS/*` repo. Any `require` in `go.mod` or import
-of a unit **fails CI** (the gate that keeps the decision honest while it stands). The bar is *standard library*, not
+library** and **no** other `PlugfyOS/*` repo. The bar is *standard library*, not
 *fewer packages*: the `persistence` contract may import `database/sql` (it is
 stdlib), but the concrete **driver** (`pgx`, the SQLite driver) and `net/http`
 are third-party / runtime concerns that live in the provider repos implementing
 these contracts — never here. Anything with a domain, a schema, or a concrete
 backend lives **above**.
+
+A core part of that decision is **dependency direction**: the L1 contracts depend
+on **nothing** from **L2 Foundation** (`github.com/PlugfyOS/plugfy.foundation.*`)
+or **L3 Platform** (`github.com/PlugfyOS/plugfy.platform.*`) — the arrow points up
+*to* L1, never down *from* it. **DC-1** machine-checks that direction in CI:
+[`scripts/decouple-check.sh`](scripts/decouple-check.sh) fails the build (via the
+[`decouple-check`](.github/workflows/decouple-check.yml) workflow) if any package
+in this module imports a Foundation or Platform path. It is a *documented,
+adjustable decision verified in CI* — open to revision if the layering needs to
+change, not an immovable constraint.
 
 ## License
 
