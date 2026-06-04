@@ -67,7 +67,6 @@ var surfacePackages = []string{
 	"events",
 	"idempotency",
 	"ids",
-	"installed",
 	"resilience",
 	"spi",
 	"spi/core",

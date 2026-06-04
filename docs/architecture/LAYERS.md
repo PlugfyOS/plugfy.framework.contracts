@@ -219,11 +219,19 @@ enterprise governance, the multi-app platform, the marketplace, automatic update
 accounts/identity, themes/skins, per-edition config, install-as-OS-service,
 supervision, observability, and the micro-kernel host-composition. It owns:
 
-- **`installed` / admissibility / manifest / layout** (`contracts/installed`) — the
-  single home of the compatibility matrix.
+- **`installed` / admissibility / manifest / layout** (`plugfy.platform.installed`)
+  — the single home of the compatibility matrix, **relocated here from L1
+  `contracts/installed` in WAVE SW-4 / NR-05 (v1.12.19)** because install/update
+  admissibility is a SCALE (L3) host concern, not a unit/pipeline contract.
+  `system.update` now imports this one matrix and its ~600-line duplicate is
+  deleted (BR-07). `RenderPath`/`RenderDeclarative`/`RenderCustom` stay here as
+  OPAQUE STRING tokens whose enum meaning the L2 UI engine owns (BR-04 satisfied
+  by the opaque-string boundary — no L3→L2 inversion).
 - **The micro-kernel loader** (`runtime/loader`), the **supervisor**
   (`runtime/supervisor`), and the **capability resolver + reconciler**
-  (`runtime/resolver`).
+  (`runtime/resolver`). The loader imports `plugfy.platform.installed` — an
+  L3→L3 edge (the loader is itself L3-bound, dissolved into Platform in SW-5),
+  not an inversion.
 - **The entire `plugfy.platform.kernel` repo** (relocated here from the Framework
   engine in WAVE R1 / NR-03) — `config`/edition, `updater`/auto-update,
   `svcmgr`/OS-service, `obs`/observability. (The Ollama specialization in

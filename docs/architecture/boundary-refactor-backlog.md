@@ -37,13 +37,13 @@ The sharpened ruler supersedes the prior phrasing ("framework contains only the 
 | concrete EventBus SPI + adapters | **L2** | `contracts/spi/eventbus` + adapters → Foundation |
 | api route contract | **L2** | ✅ DONE — relocated `contracts/api` → `foundation.sdk/api` (SW-2, v1.12.17); one tolerated transitional edge `framework.runtime/registry → foundation.sdk/api` resolved in SW-3 |
 | agent / AI contracts | **L2** | ✅ DONE — relocated `contracts/agent` → `foundation.sdk/agent` (BR-02, v1.12.12) |
-| UI RenderPath / SDUI | **L2** | `foundation.ui.engine` (already there); `RenderPath` leaves `contracts/installed` |
+| UI RenderPath / SDUI | **L2** | ✅ DONE (SW-4, v1.12.19) — `foundation.ui.engine` owns SDUI; `RenderPath` stays in L3 `plugfy.platform.installed` as an OPAQUE STRING token the UI engine interprets (BR-04 — no L3→L2 inversion) |
 | marketplace contract | **L2** | Foundation/`platform.system.marketplace` (BR-09) |
 | CEL `Evaluator` impl | **L2** | `pipeline/application/expr` → Foundation |
 | ModelGateway + node_llm/node_ui handlers | **L2** | `pipeline/application/engine` (LLM/UI) + `contracts/spi/collaborators.go` ModelGateway → Foundation |
 | action hub | **L2** | `pipeline/application/action` → Foundation |
 | MVS version parser (shared) | **L2** | Foundation shared |
-| installed/admissibility/manifest/layout | **L3** | `contracts/installed` → Platform |
+| installed/admissibility/manifest/layout | **L3** | ✅ DONE (SW-4, v1.12.19) — relocated `contracts/installed` → new module `plugfy.platform.installed`; BR-07 duplicate matrix deleted; ABI golden re-scoped |
 | micro-kernel loader | **L3** | `runtime/loader` → Platform |
 | supervisor | **L3** | `runtime/supervisor` → Platform |
 | capability resolver + reconciler | **L3** | `runtime/resolver` → Platform |
@@ -84,10 +84,11 @@ The relocations that crisp L1 down to **unit + pipeline + engine**. These are sh
 - **What:** the runtime repo has TWO go.mod modules (an undocumented L1/L3 seam — bug #9): the **nested `framework/` module** (the pipeline engine + job runner + demo builtin) is the **L1** core and STAYS; the **outer module** is host machinery — transport adapters (`plugin`, `wasm`) → **L2(adapters)**, loader + supervisor + resolver/reconciler + manifest → **L3**. Split the repo along that seam.
 - **Accept:** L1 = only the nested `framework/` engine + runner; loader/supervisor/resolver land in Platform; plugin/wasm adapters land in Foundation.
 
-### NR-05 (P2) · Relocate `contracts/installed` to L3
+### NR-05 (P2) · Relocate `contracts/installed` to L3 — ✅ DONE (SW-4, v1.12.19)
 - **Where:** `contracts/installed` (`admissibility.go`, `manifest.go`, `layout.go`, `hostmanifest.go`).
 - **What:** installed/admissibility/manifest/layout is install/update **operation** (L3 Platform). Move it to Platform, **consolidating BR-07's duplicated matrix** into that single L3 home. `RenderPath` peels to L2 UI (BR-04). Wave **R4**.
-- **Accept:** `contracts` no longer ships `installed`; the admissibility matrix has one home in the L3 install/update domain; `system.update` imports it (resolves BR-07).
+- **DONE (SW-4, v1.12.19):** the four files moved verbatim into the NEW L3 module **`plugfy.platform.installed`** (`github.com/PlugfyOS/plugfy.platform.installed`, package `installed`, go 1.25, stdlib-only). All ~23 importers (runtime `loader`, server `installedregistry`/`hostconfig`/`wiring`/`seed`/`boot`, `ops.packaging/seed`) flipped to the new path; the consumer-less `foundation.sdk/installed` re-export alias was DELETED (dead surface + would have been an L2→L3 inversion). `contracts/installed/` is removed and the ABI golden re-scoped (the `installed` block — 123 lines — dropped; `go test ./abi` green). `RenderPath`/`RenderDeclarative`/`RenderCustom` stay in `installed` as OPAQUE STRING tokens; the L2 UI engine owns their enum semantics (BR-04 satisfied by the opaque-string boundary — no L3→L2 inversion). `CompareVersions` is now exported from `installed` (public companion to `RangeContains`) so `system.update`'s planner reuses the one engine. The `runtime/loader → plugfy.platform.installed` edge is a documented transitional L3→L3 link (the loader is itself L3-bound, dissolved into Platform in SW-5).
+- **Accept:** `contracts` no longer ships `installed`; the admissibility matrix has one home in the L3 install/update domain; `system.update` imports it (resolves BR-07). ✅
 
 ### NR-06 (P2) · Relocate the L2 leaf contracts + engine domain handlers to Foundation
 - **Where:** `contracts/api` ✅ (SW-2, v1.12.17 → `foundation.sdk/api`), `contracts/agent` ✅ (BR-02, v1.12.12), `contracts/grpcstatus` ✅ (R2, v1.12.15 → `foundation.sdk/grpcstatus`), the concrete `eventbus` SPI + adapters, `pipeline/application/action`, `pipeline/application/trigger`, `pipeline/application/expr` (CEL Evaluator impl), `ModelGateway` (`spi/collaborators.go`), `pipeline/application/engine/node_llm.go` + `node_ui.go`.
@@ -130,12 +131,13 @@ The relocations that crisp L1 down to **unit + pipeline + engine**. These are sh
 - **Mudança:** o `depsupervisor` deveria ser um **mecanismo genérico** ("garanta que o processo de dependência X esteja pronto") e a especialização Ollama virar uma unidade/extensão do domínio de IA. Tirar `ModelConfig` Ollama do god-config do kernel.
 - **Aceite:** `kernel` não menciona Ollama/embedding; a garantia de Ollama vive no domínio de IA.
 
-### BR-04 (P3) · `RenderPath` (UI) fora do `installed`
+### BR-04 (P3) · `RenderPath` (UI) fora do `installed` — ✅ DONE (SW-4, v1.12.19)
 > **SHARPENED — `installed` itself leaves L1.** Beyond peeling `RenderPath` to L2 UI: the whole `contracts/installed` package relocates to **L3 Platform** ([NR-05](#nr-05-p2--relocate-contractsinstalled-to-l3)). `RenderPath`/`UISchema` peel to the L2 UI domain on the way out; the residual admissibility/manifest/layout lands in L3.
 - **Onde:** `contracts/installed` (`RenderPath` declarative/custom, espelha o enum do ui-engine).
 - **Problema:** conceito de UI no L1; dono canônico é `foundation.ui.engine`.
 - **Mudança:** mover `RenderPath`/`UISchema` para o domínio de UI; o `installed` mantém só a admissibilidade genérica.
-- **Aceite:** `installed` não referencia conceitos de renderização de UI.
+- **DONE (SW-4, v1.12.19) — resolved via OPAQUE-STRING boundary, not a physical move.** `installed` left L1 to L3 (NR-05); `RenderPath`/`RenderDeclarative`/`RenderCustom` stay in `plugfy.platform.installed` as opaque STRING tokens on the manifest record, and the **L2 UI engine owns the enum meaning** (it interprets the token). Moving `RenderPath` into the L2 UI foundation would have inverted the dependency (L3 `installed` → L2 UI); the opaque-string contract keeps `installed` free of any UI/render semantics while the manifest still carries the token the UI engine reads. This is the born-correct resolution: `installed` references no UI-rendering CONCEPT, only an uninterpreted string.
+- **Aceite:** `installed` não referencia conceitos de renderização de UI (carrega só um token string opaco). ✅
 
 ### BR-05 (P3) · Parametrizar o repositório de release do updater
 > **SUPERSEDED by [NR-03](#nr-03-p1--relocate-the-entire-plugfyframeworkkernel-repo-to-platform-l3).** The updater leaves L1 entirely (with the whole kernel → L3), so the hard-coded `plugfy.platform.server` default (bug #6) ceases to be an L1 boundary violation; parametrizing the release source remains a correctness fix to make in its new L3 home.
@@ -153,12 +155,13 @@ The relocations that crisp L1 down to **unit + pipeline + engine**. These are sh
 
 ## B. Fronteiras — Platform/Foundation consumir ou ceder ao framework
 
-### BR-07 (P1) · Eliminar a duplicação da admissibilidade em `system.update`
+### BR-07 (P1) · Eliminar a duplicação da admissibilidade em `system.update` — ✅ DONE (SW-4, v1.12.19)
 > **Still valid; direction changes.** With [NR-05](#nr-05-p2--relocate-contractsinstalled-to-l3) moving `contracts/installed` to **L3 Platform**, the single home of the admissibility matrix becomes the **L3 install/update domain** (not the L1 `contracts`). `system.update` imports/re-exports that L3 package; the ~600 duplicated lines (bug #5) are deleted either way. Remains a standalone P1.
 - **Onde:** `platform/system.update/domain/matrix.go` (+`range.go`/`version.go`/`hostos.go`) e `system.update/contracts/spi/compatibility.go` re-declaram a matriz de 9 eixos + tipos de compat que já são canônicos em `framework/contracts/installed`. `system.update` **não importa** o pacote do framework.
 - **Evidência:** o próprio framework documenta a dívida — `installed/admissibility.go:184-188` ("private copy … SHOULD be retired by re-exporting").
 - **Mudança:** `system.update` passa a importar/re-exportar `contracts/installed`; apagar ~600 linhas duplicadas.
-- **Aceite:** `system.update` não tem cópia da matriz; `go test` verde nos dois; uma única fonte de verdade.
+- **DONE (SW-4, v1.12.19):** `system.update` now requires `plugfy.platform.installed`. `domain/{range.go,version.go,hostos.go}` (+ `range_test.go`/`version_test.go`/`hostos_test.go`) are **DELETED** and `domain/matrix.go` was rewritten as a thin ADAPTER that delegates the nine-axis verdict to `installed.AdmissibleAxis` (keeping the update plane's stateful `Matrix`/`Verdict`/`NewMatrix`/`NewCapabilityIndex`/`AdmissibleVersions`/`CompareVersions` surface the planner consumes). `contracts/spi/compatibility.go`'s duplicated `Compatibility`/`Channel`/`CapabilityRequirement`/`InfraSupport` (+ channel consts) are now **type aliases** re-exporting `installed.*` (preserving the public SPI names `spi.Compatibility` etc.); only the update-specific `Layer` ranking and `KindUpdate` stay locally defined. `system.update` tests (`domain`, `application`, `infrastructure/sqlstore`, `service/updatesvc`, `contracts/spi`) all green against the imported matrix.
+- **Aceite:** `system.update` não tem cópia da matriz; `go test` verde nos dois; uma única fonte de verdade. ✅
 
 ### BR-08 (P2) · Avaliar SDK de autoria como mecanismo do framework
 > **RESOLVED — SDK stays Foundation (record ADR).** Under the run/build/scale ruler the SDK is a **BUILD** concern (authoring units/apps), which is L2 Foundations by definition. Decision: keep `foundation.sdk` in Foundation; do **not** sink it into L1. Capture the rationale in an ADR (the L1 surface is unit+pipeline+engine only; authoring ergonomics live one layer up so they can evolve on the fast clock).
@@ -230,7 +233,7 @@ Defects surfaced while reading the as-built L1. Each is filed as a discrete bug-
 | 2 | ✅ **RESOLVED (v1.12.16)** — `core.Unit` no longer embeds `spi.Provider`. The Unit is now the minimal `{ Describe, Invoke }` brick; identity/kind/capabilities/health derive from `Describe()`. `DefaultUnit` keeps the four methods as descriptor-derived helpers. | was `spi/core/unit.go:16-17` | Keystone of **NR-01** done; relocating Provider/Kind/registry to Foundation still pending (P2). |
 | 3 | **Legacy 4-hook `spi.Lifecycle` + `DefaultLifecycle`** parallel to `core.Unit`+`DefaultUnit` — two competing brick contracts in L1; likely dead. | `spi/lifecycle.go:31-36,183-192` | **Verify usage and delete** the legacy `Lifecycle`/`DefaultLifecycle` (keep `LifecycleContext`, which `UnitContext` extends). |
 | 4 | ✅ **RESOLVED (v1.12.13)** — `ApplyMigrations` no longer lives in the contracts module; the whole persistence seam relocated to L2 `plugfy.foundation.persistence` (NR-02 / DOC-01). | was `contracts/persistence/migrate.go` → `plugfy.foundation.persistence/migrate.go` | Done in Wave R3. |
-| 5 | **~600 lines of admissibility matrix duplicated** in `system.update` (the 9-axis compat matrix re-declared, framework package not imported). | `platform/system.update/domain/matrix.go` (+`range.go`/`version.go`/`hostos.go`) | Subsumed by **BR-07 / NR-05** (single L3 home, delete the copy). |
+| 5 | **~600 lines of admissibility matrix duplicated** in `system.update` (the 9-axis compat matrix re-declared, framework package not imported). | `platform/system.update/domain/matrix.go` (+`range.go`/`version.go`/`hostos.go`) | ✅ **RESOLVED (SW-4, v1.12.19)** via **BR-07 / NR-05** — `system.update` imports the single L3 matrix in `plugfy.platform.installed`; `domain/{range,version,hostos}.go` deleted, `matrix.go` is now a thin adapter, compat types are aliases. |
 | 6 | **Updater hard-codes `plugfy.platform.server`** as the release repo default — generic kernel born knowing a specific daemon. | `kernel/updater/updater.go:29` | Subsumed by **NR-03 / BR-05** (kernel→L3; require `SetReleaseSource`). |
 | 7 | **`errclass` substring-based routing** — `IsTimeout/IsCancel/IsTransient` via `strings.Contains`, fragile and locale-dependent. | `pipeline/.../errclass.go` | **IMP-04** — classify via `errors.Is`/`ErrorClass()`; remove the substring fallback. |
 | 8 | **`node_llm`/`node_ui` closed switch in the "agnostic" engine** — domain-named node types hard-wired into the generic engine. | `pipeline/application/engine/node_llm.go`, `node_ui.go` | Subsumed by **BR-06 / NR-06** (LLM/UI nodes + ModelGateway leave the engine). |
