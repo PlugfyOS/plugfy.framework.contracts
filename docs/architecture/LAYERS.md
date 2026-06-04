@@ -96,14 +96,19 @@ L2 owns:
   storage/database/authorizer).
 - **The persistence seam** (`contracts/persistence`) — `SQLDB`/`MigrationSet`/`RegistryStore`.
 - **The concrete `EventBus` SPI + adapters**, the **api route contract**
-  (`contracts/api`), the **agent/AI contracts** (`contracts/agent`), and the
-  **marketplace contract**.
+  (`contracts/api`), and the **marketplace contract**.
+- **The agent/AI contracts** (`foundation.sdk/agent`) — the Assistant/Event chat
+  surface and the twelve declarative Agent-Hub primitives + resolver. **Relocated
+  here from L1 `contracts/agent` (BR-02, v1.12.12)**: this is the canonical home;
+  `platform/system.ai` re-sources the catalog from the SDK. The types still import
+  the L1 base SPI (`contracts/spi`, Provider/Kind) — the correct L2→L1 direction.
 - **The UI engine + SDUI / `RenderPath`** (`foundation.ui.engine`).
 - **The CEL `Evaluator` implementation** (`pipeline/application/expr`), the
   **`ModelGateway`** + `node_llm`/`node_ui` handlers, the **action hub**
   (`pipeline/application/action`), and the **MVS version parser**.
 - **The SDK** (`foundation.sdk`) — authoring is a BUILD concern; the SDK stays in
-  Foundation by design (see the backlog BR-08 ADR).
+  Foundation by design (see the backlog BR-08 ADR). It now also **hosts** the
+  canonical agent/AI contracts (above).
 
 ## L3 Platform — SCALES apps
 

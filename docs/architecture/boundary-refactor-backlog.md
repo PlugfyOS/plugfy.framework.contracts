@@ -34,7 +34,7 @@ The sharpened ruler supersedes the prior phrasing ("framework contains only the 
 | persistence seam (SQLDB/MigrationSet/RegistryStore) | **L2** | `contracts/persistence` → Foundation |
 | concrete EventBus SPI + adapters | **L2** | `contracts/spi/eventbus` + adapters → Foundation |
 | api route contract | **L2** | `contracts/api` → Foundation |
-| agent / AI contracts | **L2** | `contracts/agent` → Foundation/AI |
+| agent / AI contracts | **L2** | ✅ DONE — relocated `contracts/agent` → `foundation.sdk/agent` (BR-02, v1.12.12) |
 | UI RenderPath / SDUI | **L2** | `foundation.ui.engine` (already there); `RenderPath` leaves `contracts/installed` |
 | marketplace contract | **L2** | Foundation/`platform.system.marketplace` (BR-09) |
 | CEL `Evaluator` impl | **L2** | `pipeline/application/expr` → Foundation |
@@ -110,13 +110,13 @@ The relocations that crisp L1 down to **unit + pipeline + engine**. These are sh
 - **Aceite:** nenhum nome de categoria de domínio aparece em `contracts`; providers e consumidores referenciam o catálogo do Foundation; golden ABI do L1 não contém mais as constantes de domínio.
 - **Risco/contraponto:** perde-se o "vocabulário num lugar só" do L1 — mitigado pelo catálogo único no Foundation.
 
-### BR-02 (P2) · Reposicionar `contracts/agent` para o domínio de IA
-> **SHARPENED to a hard move (P1-class within R2).** No longer "decide keep-or-move": `contracts/agent` **moves to Foundation/AI** unconditionally (covered by [NR-06](#nr-06-p2--relocate-the-l2-leaf-contracts--engine-domain-handlers-to-foundation)). This also **resolves IMP-03** (the public-but-ungolden `agent` package leaves L1, so it no longer needs to be in the L1 golden).
-- **Onde:** `contracts/agent/ai.go` (Assistant + 12 primitivas Agent-Hub).
-- **Problema:** contrato de IA num L1 que se diz agnóstico; além disso é **público mas fora do golden** (ver IMP-03).
-- **Mudança:** mover para um módulo de contratos-de-agente no Foundation/IA (o autor já importa o Foundation). Receptor real existe: `platform/system.ai` (ADK-Go + Agent Hub).
-- **Aceite:** `contracts` não exporta tipos de agente; autores declaram `AgentDef` importando o módulo de IA.
-- **Contraponto (registrar na issue):** hoje está no L1 *de propósito* para o autor declarar agente sem depender de `system.ai` (`agent/ai.go:9-18`). Decidir explicitamente: manter-com-justificativa **ou** mover. Não deixar implícito.
+### BR-02 (P2) · Reposicionar `contracts/agent` para o domínio de IA — ✅ DONE (R2 warm-up, v1.12.12)
+> **DONE.** The `agent` contract has been relocated out of L1 `contracts` into the L2 Foundation SDK (`foundation.sdk/agent`), which now holds the canonical type definitions (previously an alias re-export). `framework.contracts/agent` is deleted; `platform/system.ai/contracts/spi` re-sources the catalog from `foundation.sdk/agent`; the public surface is byte-identical so every downstream author is untouched. This **resolves IMP-03** (the public-but-ungolden `agent` package left L1). This was the lowest-risk warm-up sub-move that validates the relocation mechanics reused by the bigger R2 waves.
+- **Onde (antes):** `framework.contracts/agent/{ai.go,hub.go}` (Assistant + 12 primitivas Agent-Hub). **Agora:** `foundation.sdk/agent/{ai.go,hub.go}`.
+- **Problema (resolvido):** contrato de IA num L1 que se diz agnóstico; além disso era **público mas fora do golden** (ver IMP-03).
+- **Mudança (feita):** definições reais movidas para o SDK do Foundation; os tipos de agente importam `framework.contracts/spi` (Provider/Kind) — esse import L2→L1 é a direção correta (a base SPI permanece em L1 até R5). `system.ai` permanece o receptor real (ADK-Go + Agent Hub) e apenas re-fonteia o contrato pelo SDK.
+- **Aceite (atingido):** `contracts` não exporta mais tipos de agente; autores declaram `AgentDef` importando `foundation.sdk/agent`.
+- **Contraponto (resolvido):** o motivo de estar no L1 era deixar o autor declarar agente sem depender de `system.ai`; isso continua verdadeiro — o autor agora importa o **Foundation SDK** (que já importava de qualquer forma), sem nenhuma dependência em `system.ai`.
 
 ### BR-03 (P3) · Tirar o dep-supervisor do Ollama do kernel — remaining follow-up after NR-03
 > **NR-03 DONE; BR-03 is the residual P3 peel.** The kernel repo has relocated to Platform L3 as `plugfy.platform.kernel` (NR-03 ✓). The generic dep-supervisor mechanism now lives there (L3); what remains is peeling the **Ollama specialization** to Foundation/AI — a P3 hygiene follow-up, tracked as its own issue, NOT a blocker on R1.
@@ -184,12 +184,12 @@ The relocations that crisp L1 down to **unit + pipeline + engine**. These are sh
 - **Mudança:** implementar a resolução de produção (install-root/registry) que satisfaz o mesmo `UnitResolver`, ou marcar explicitamente como exemplo.
 - **Aceite:** existe um resolver de produção real, ou o demo está rotulado como tal.
 
-### IMP-03 (P2) · `agent` público fora do golden ABI
-> **RESOLVED by BR-02 / [NR-06](#nr-06-p2--relocate-the-l2-leaf-contracts--engine-domain-handlers-to-foundation).** Once `contracts/agent` moves to Foundation/AI it is no longer part of the L1 surface, so the "public-but-ungolden L1 package" gap disappears. [NR-08](#nr-08-p3--re-scope-the-golden-abi-test-to-the-crisp-l1-surface) re-scopes the golden to the crisp post-relocation L1 surface.
-- **Onde:** `contracts/abi/abi_test.go:66-76` (surfacePackages — 11 pacotes; `agent` ausente).
-- **Problema:** a garantia "ABI frozen" não cobre um pacote público exportado.
-- **Mudança:** incluir `agent` no golden **ou** despublicá-lo até estabilizar (casa com BR-02).
-- **Aceite:** todo pacote público de `contracts` está no golden, ou marcado interno.
+### IMP-03 (P2) · `agent` público fora do golden ABI — ✅ DONE (closed by BR-02, v1.12.12)
+> **RESOLVED by BR-02** (the R2 warm-up agent relocation, landed v1.12.12). `contracts/agent` was moved to the L2 Foundation SDK (`foundation.sdk/agent`) and deleted from L1, so the "public-but-ungolden L1 package" gap is gone: the L1 golden's `surfacePackages` never listed `agent`, and now no public `agent` package exists in `contracts` at all. The golden remained byte-unchanged through the move (confirmed: `go test ./abi` green, `agent` absent from `surfacePackages`). [NR-08](#nr-08-p3--re-scope-the-golden-abi-test-to-the-crisp-l1-surface) still re-scopes the golden to the crisp post-relocation L1 surface as the remaining R7 cleanup.
+- **Onde:** `contracts/abi/abi_test.go:65-77` (surfacePackages — 11 pacotes; `agent` ausente — agora também fisicamente ausente do módulo).
+- **Problema (resolvido):** a garantia "ABI frozen" não cobria um pacote público exportado.
+- **Mudança (feita):** `agent` despublicado de L1 e movido para o Foundation SDK (casou com BR-02).
+- **Aceite (atingido):** todo pacote público de `contracts` está no golden; o `agent` saiu do L1.
 
 ### IMP-04 (P3) · Classificação de erro por substring de string
 > **Unchanged — an L1 engine bug (bug #7).** `errclass` stays in L1; replace substring routing with `errors.Is`/`ErrorClass()`. Not a boundary item.
