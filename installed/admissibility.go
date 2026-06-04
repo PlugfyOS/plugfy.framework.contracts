@@ -4,9 +4,28 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-
-	"github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
+
+// CapabilityRequirement is one declared capability dependency: a capability name
+// plus the SemVer range the dependent admits. It is the cross-cutting shape a
+// host or a module uses to say "I need capability X within version range R",
+// which the admissibility matrix resolves by Minimal-Version-Selection against
+// the installed set.
+//
+// It lives on the installed/admissibility baseplate because both the per-host
+// dependency manifest ([HostManifest]) and every candidate's compatibility
+// [CompatSpec] speak it, and the pure admissibility check ([Admissible]) operates
+// on it — so the contract belongs where every side reuses it verbatim. It is an
+// install/admissibility concern, NOT a provider concern: no provider/unit
+// references it, so it stays here on the install baseplate rather than the L2
+// provider taxonomy (keeping this package free of any Foundation import).
+type CapabilityRequirement struct {
+	// Capability is the required capability name (e.g. "storage", "identity").
+	Capability string `json:"capability"`
+	// Version is the SemVer range the requirement admits (e.g. ">=1.0.0").
+	// Empty means "any version of that capability".
+	Version string `json:"version,omitempty"`
+}
 
 // This file LIFTS the pure, I/O-free version-compatibility admissibility matrix
 // into the L1 baseplate. The matrix answers one question — "is this candidate
@@ -15,7 +34,7 @@ import (
 // a verdict and, when blocked, the first failing axis + a human-readable reason.
 //
 // It operates ONLY on a candidate compatibility block ([CompatSpec]), the
-// running [PlatformSpine] and capability requirements ([spi.CapabilityRequirement]
+// running [PlatformSpine] and capability requirements ([CapabilityRequirement]
 // resolved through a [CapabilityIndex]) — all of which live on this baseplate —
 // so the check has no business in any single consumer. The logic is identical
 // (axis order, semantics, reasons) to the engine that previously lived only in
@@ -116,8 +135,8 @@ type CompatSpec struct {
 	// Infra declares the infrastructure routes the candidate needs/supports.
 	Infra InfraSupport `json:"infra,omitzero"`
 	// Requires lists the capability dependencies (MVS), resolved against the
-	// installed [CapabilityIndex]. Reuses [spi.CapabilityRequirement] verbatim.
-	Requires []spi.CapabilityRequirement `json:"requires,omitempty"`
+	// installed [CapabilityIndex]. Reuses [CapabilityRequirement] verbatim.
+	Requires []CapabilityRequirement `json:"requires,omitempty"`
 	// Channel is the release channel this version is published on
 	// (stable ⊂ beta ⊂ nightly). Empty normalizes to stable.
 	Channel Channel `json:"channel,omitempty"`
@@ -292,7 +311,7 @@ func checkInfra(infra InfraSupport, spine PlatformSpine) (bool, string) {
 
 // checkRequires verifies every declared capability dependency resolves against
 // an installed capability whose version satisfies the requirement's range (MVS).
-func checkRequires(reqs []spi.CapabilityRequirement, caps CapabilityIndex) (bool, string) {
+func checkRequires(reqs []CapabilityRequirement, caps CapabilityIndex) (bool, string) {
 	for _, req := range reqs {
 		have, ok := caps[req.Capability]
 		if !ok {

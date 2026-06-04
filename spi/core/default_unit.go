@@ -2,8 +2,6 @@ package core
 
 import (
 	"context"
-
-	commonspi "github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
 
 // Handler is one named method's implementation.
@@ -22,13 +20,19 @@ type DefaultUnit struct {
 	handlers map[string]Handler // method name -> impl, registered via Method()
 }
 
-// Provider surface — satisfied directly from the descriptor. Capabilities is the
-// generic Provider feature-flag map; the pure core declares none, so it returns
-// an empty map. Capability NEGOTIATION (provides/requires/baseplate
-// requirements) is a PLATFORM concern layered on by reading Describe(), not a
-// core descriptor field — override this if a host wants to surface flags.
+// Provider-shaped helpers — satisfied directly from the descriptor. These are
+// descriptor-derived convenience accessors, NOT interface-mandated (core.Unit is
+// the minimal { Describe, Invoke } brick): a host wanting a provider-shaped view
+// of a concrete brick gets it for free. Kind reports the native L1 composition
+// ROLE ([Kind]); the L2 provider-category Kind is a Foundation concept, so a host
+// converts spi.Kind(unit.Kind()) at the L2 boundary rather than the L1 brick
+// importing the provider taxonomy. Capabilities is the generic feature-flag map;
+// the pure core declares none, so it returns an empty map. Capability NEGOTIATION
+// (provides/requires/baseplate requirements) is a PLATFORM concern layered on by
+// reading Describe(), not a core descriptor field — override this if a host wants
+// to surface flags.
 func (b *DefaultUnit) Name() string                      { return b.Desc.ID }
-func (b *DefaultUnit) Kind() commonspi.Kind              { return commonspi.Kind(b.Desc.Kind) }
+func (b *DefaultUnit) Kind() Kind                        { return b.Desc.Kind }
 func (b *DefaultUnit) Capabilities() map[string]any      { return map[string]any{} }
 func (b *DefaultUnit) HealthCheck(context.Context) error { return nil } // override if needed
 

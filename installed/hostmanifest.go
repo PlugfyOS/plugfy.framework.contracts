@@ -6,7 +6,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
 
 // HostManifestSchema is the schema identifier of the per-host dependency
@@ -26,8 +25,8 @@ const HostManifestSchema = "host-manifest.v1"
 type HostRequires struct {
 	// Platform lists the capability dependencies the host needs from the
 	// platform, each a capability name plus the SemVer range it admits. Reuses
-	// the cross-cutting [spi.CapabilityRequirement] verbatim.
-	Platform []spi.CapabilityRequirement `json:"platform,omitempty"`
+	// the cross-cutting [CapabilityRequirement] verbatim.
+	Platform []CapabilityRequirement `json:"platform,omitempty"`
 	// Specific lists modules the host pins by id and version range. Reuses the
 	// installed [ModuleRef] verbatim.
 	Specific []ModuleRef `json:"specific,omitempty"`

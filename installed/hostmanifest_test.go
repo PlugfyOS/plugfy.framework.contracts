@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
 
 func sampleHostManifest() HostManifest {
@@ -14,7 +13,7 @@ func sampleHostManifest() HostManifest {
 		Schema: HostManifestSchema,
 		Host:   "io.plugfy.host.lab-01",
 		Requires: HostRequires{
-			Platform: []spi.CapabilityRequirement{
+			Platform: []CapabilityRequirement{
 				{Capability: "storage", Version: ">=1.2.0"},
 				{Capability: "identity"}, // any version
 			},
@@ -90,7 +89,7 @@ func TestHostManifestValidate(t *testing.T) {
 	}
 
 	bad = sampleHostManifest()
-	bad.Requires.Platform = []spi.CapabilityRequirement{{Version: ">=1.0.0"}} // no capability
+	bad.Requires.Platform = []CapabilityRequirement{{Version: ">=1.0.0"}} // no capability
 	if err := bad.Validate(); err == nil {
 		t.Error("expected requires.platform with empty capability to be rejected")
 	}

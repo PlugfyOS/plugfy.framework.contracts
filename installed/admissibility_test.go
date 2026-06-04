@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/PlugfyOS/plugfy.framework.contracts/spi"
 )
 
 // baseSpine is a representative installed platform spine used across the
@@ -54,7 +53,7 @@ func TestAdmissible_GoldenRows(t *testing.T) {
 				UISchema: "v1",
 				HostOS:   []string{"windows>=10", "macos>=13", "linux"},
 				Edition:  []string{"desktop", "cloud"},
-				Requires: []spi.CapabilityRequirement{{Capability: "storage", Version: ">=1.0.0"}},
+				Requires: []CapabilityRequirement{{Capability: "storage", Version: ">=1.0.0"}},
 				Channel:  ChannelStable,
 			},
 			admissible: true,
@@ -132,13 +131,13 @@ func TestAdmissible_GoldenRows(t *testing.T) {
 		},
 		{
 			name:       "missing required capability -> blocked on requires",
-			spec:       CompatSpec{Requires: []spi.CapabilityRequirement{{Capability: "billing", Version: ">=1.0.0"}}},
+			spec:       CompatSpec{Requires: []CapabilityRequirement{{Capability: "billing", Version: ">=1.0.0"}}},
 			admissible: false,
 			axis:       AxisRequires,
 		},
 		{
 			name:       "required capability too old -> blocked on requires",
-			spec:       CompatSpec{Requires: []spi.CapabilityRequirement{{Capability: "storage", Version: ">=2.0.0"}}},
+			spec:       CompatSpec{Requires: []CapabilityRequirement{{Capability: "storage", Version: ">=2.0.0"}}},
 			admissible: false,
 			axis:       AxisRequires,
 		},
@@ -276,7 +275,7 @@ func TestCompatSpecJSONRoundTrip(t *testing.T) {
 		HostOS:   []string{"windows>=10", "linux"},
 		Edition:  []string{"desktop"},
 		Infra:    InfraSupport{EventBus: []string{"inproc", "nats"}, Database: []string{"embedded"}},
-		Requires: []spi.CapabilityRequirement{{Capability: "storage", Version: ">=1.0.0"}},
+		Requires: []CapabilityRequirement{{Capability: "storage", Version: ">=1.0.0"}},
 		Channel:  ChannelStable,
 	}
 	b, err := json.Marshal(in)

@@ -145,6 +145,9 @@ package installed // github.com/PlugfyOS/plugfy.framework.contracts/installed
 	func RangeContains(string, string) bool
 	type Area string
 	type CapabilityIndex map[string]string
+	type CapabilityRequirement field Capability string `json:"capability"`
+	type CapabilityRequirement field Version string `json:"version,omitempty"`
+	type CapabilityRequirement struct
 	type Channel method (T) Valid() bool
 	type Channel method (T) VisibleUnder(Channel) bool
 	type Channel string
@@ -155,7 +158,7 @@ package installed // github.com/PlugfyOS/plugfy.framework.contracts/installed
 	type CompatSpec field HostOS []string `json:"hostOS,omitempty"`
 	type CompatSpec field Infra InfraSupport `json:"infra,omitzero"`
 	type CompatSpec field Platform string `json:"platform,omitempty"`
-	type CompatSpec field Requires []spi.CapabilityRequirement `json:"requires,omitempty"`
+	type CompatSpec field Requires []CapabilityRequirement `json:"requires,omitempty"`
 	type CompatSpec field UISchema string `json:"uischema,omitempty"`
 	type CompatSpec struct
 	type Compatibility field Edition string `json:"edition,omitempty"`
@@ -171,7 +174,7 @@ package installed // github.com/PlugfyOS/plugfy.framework.contracts/installed
 	type HostManifest field Schema string `json:"schema"`
 	type HostManifest method (T) Validate() error
 	type HostManifest struct
-	type HostRequires field Platform []spi.CapabilityRequirement `json:"platform,omitempty"`
+	type HostRequires field Platform []CapabilityRequirement `json:"platform,omitempty"`
 	type HostRequires field Specific []ModuleRef `json:"specific,omitempty"`
 	type HostRequires struct
 	type InfraSupport field Database []string `json:"database,omitempty"`
@@ -256,23 +259,6 @@ package resilience // github.com/PlugfyOS/plugfy.framework.contracts/resilience
 	var ErrOpen error
 
 package spi // github.com/PlugfyOS/plugfy.framework.contracts/spi
-	const KindAPI Kind = "api"
-	const KindAuthorizer Kind = "authorizer"
-	const KindConnector Kind = "connector"
-	const KindDatabase Kind = "database"
-	const KindEmbedding Kind = "embedding"
-	const KindEventBus Kind = "eventbus"
-	const KindIdentity Kind = "identity"
-	const KindModel Kind = "model"
-	const KindNotification Kind = "notification"
-	const KindRAG Kind = "rag"
-	const KindRegistry Kind = "registry"
-	const KindSecret Kind = "secret"
-	const KindStorage Kind = "storage"
-	const KindVectorStore Kind = "vectorstore"
-	type CapabilityRequirement field Capability string `json:"capability"`
-	type CapabilityRequirement field Version string `json:"version,omitempty"`
-	type CapabilityRequirement struct
 	type CredentialAccessor interface
 	type CredentialAccessor method Get(string) (CredentialPayload, error)
 	type CredentialPayload field Data map[string]string
@@ -288,16 +274,6 @@ package spi // github.com/PlugfyOS/plugfy.framework.contracts/spi
 	type Evaluator method Eval(string, map[string]any) (any, error)
 	type Evaluator method EvalBool(string, map[string]any) (bool, error)
 	type Evaluator method Interpolate(string, map[string]any) (string, error)
-	type EventBus embeds Provider
-	type EventBus interface
-	type EventBus method Capabilities() map[string]any
-	type EventBus method HealthCheck(context.Context) error
-	type EventBus method Kind() Kind
-	type EventBus method Name() string
-	type EventBus method Publish(context.Context, string, events.CloudEvent) error
-	type EventBus method Subscribe(context.Context, string, string, Handler) (Subscription, error)
-	type Handler func(ctx context.Context, e events.CloudEvent) error
-	type Kind string
 	type Lifecycle interface
 	type Lifecycle method OnExecute(LifecycleContext, map[string]any) (map[string]any, error)
 	type Lifecycle method OnFinalize(LifecycleContext, map[string]any, error)
@@ -322,11 +298,6 @@ package spi // github.com/PlugfyOS/plugfy.framework.contracts/spi
 	type Logger method Error(string, ...LogField)
 	type Logger method Info(string, ...LogField)
 	type Logger method Warn(string, ...LogField)
-	type Provider interface
-	type Provider method Capabilities() map[string]any
-	type Provider method HealthCheck(context.Context) error
-	type Provider method Kind() Kind
-	type Provider method Name() string
 	type Span interface
 	type Span method End(...SpanEndOption)
 	type Span method RecordError(error)
@@ -336,8 +307,6 @@ package spi // github.com/PlugfyOS/plugfy.framework.contracts/spi
 	type StateAccessor method Delete(string) error
 	type StateAccessor method Get(string) (any, bool)
 	type StateAccessor method Set(string, any) error
-	type Subscription interface
-	type Subscription method Close() error
 	type TenantRef field OrgID string
 	type TenantRef field ProjectID string
 	type TenantRef struct
@@ -387,7 +356,7 @@ package spi/core // github.com/PlugfyOS/plugfy.framework.contracts/spi/core
 	type DefaultUnit method (*T) Describe() UnitDescriptor
 	type DefaultUnit method (*T) HealthCheck(context.Context) error
 	type DefaultUnit method (*T) Invoke(UnitContext, string, map[string]any) (map[string]any, error)
-	type DefaultUnit method (*T) Kind() spi.Kind
+	type DefaultUnit method (*T) Kind() Kind
 	type DefaultUnit method (*T) Method(string, Handler) *DefaultUnit
 	type DefaultUnit method (*T) Name() string
 	type DefaultUnit struct

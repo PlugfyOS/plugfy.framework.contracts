@@ -86,12 +86,28 @@ deliberately excludes. **A "capability" is an L2 concept**: L1 has no notion of 
 
 L2 owns:
 
-- **Provider / Kind / registry** (`contracts/spi/provider.go` + `runtime/registry`)
-  — every pluggable provider and the registry that discovers them. (A Unit is **not**
-  a Provider: as of v1.12.16 `core.Unit` no longer embeds `spi.Provider` — it is the
-  minimal `{ Describe, Invoke }` brick, and identity/kind/capabilities/health derive
-  from `Describe()`. The physical relocation of Provider/Kind/registry into Foundation
-  is the remaining part of backlog NR-01.)
+- **Provider / Kind / registry / unit-manifest** (`foundation.sdk/spi` +
+  `plugfy.foundation.registry`) — every pluggable provider, the provider-category
+  `Kind` + its constants, and the registry that discovers them. **Relocated out of
+  L1 here in SW-3 (v1.12.18), completing NR-01's physical move:** `Provider`/`Kind`
+  are now defined canonically in `foundation.sdk/spi` (no longer in
+  `contracts/spi/provider.go`, which is deleted); the pure provider **index**
+  (`Register`/`Build`/`Names`/`Has` + `Factory`/`Options`) and the universal
+  **unit manifest** (`unit.plugfy.com/v1` + validator) live in the new stdlib-light
+  Foundation module **`plugfy.foundation.registry`** (+ `/manifest`). The
+  supervisor-coupled live **`ServiceIndex`** and on-disk manifest **`Discovery`**
+  stay in `plugfy.platform.runtime`'s `registry` package (L3 host machinery) and
+  import the L2 index + manifest one-way; they relocate to L3 with the loader in
+  SW-5. (A Unit is **not** a Provider: as of v1.12.16 `core.Unit` no longer embeds
+  `spi.Provider` — it is the minimal `{ Describe, Invoke }` brick, and
+  identity/kind/capabilities/health derive from `Describe()`; `DefaultUnit.Kind()`
+  now returns the native L1 composition `core.Kind`, leaving the L2 provider `Kind`
+  to a host conversion at the boundary.) This **dissolves the SW-2 transitional
+  `runtime/registry → foundation.sdk/api` edge** and the runtime↔sdk module cycle:
+  the SDK now imports the L2 registry/manifest, never `plugfy.framework.runtime`.
+  The dedicated `plugfy.foundation.capabilities` catalog that will own the DOMAIN
+  Kind vocabulary remains a later wave (SW-8 / NR-07; the domain constants ride with
+  the type in `sdk/spi` for now).
 - **Transport adapters** — the native/subprocess plugin tiers (`runtime/plugin`)
   and the WASM runtime (`runtime/wasm`).
 - **The capabilities catalog** (NEW Foundation module) — the domain `Kind`/capability
@@ -109,6 +125,13 @@ L2 owns:
   run Postgres — the same `SQLDB`-seam stores run unchanged on either (EDB-F2 #69; see
   `governance.spine/docs/EDB-PERSISTENCE.md`).
 - **The concrete `EventBus` SPI + adapters** and the **marketplace contract**.
+  **Relocated here in SW-3 (v1.12.18):** `EventBus`/`Handler`/`Subscription` are now
+  defined natively in `foundation.sdk/spi` (no longer aliased from L1
+  `contracts/spi`, whose `eventbus.go` is deleted) — `EventBus` embeds the L2
+  `Provider`, so keeping it in L1 while Provider lives in L2 would have inverted the
+  layer direction. The L1 pipeline engine consumes only its own NARROW, host-owned
+  EventBus port (`pipeline/contracts/spi`, just `Subscribe`), so L1 depends on none
+  of the concrete event SPI.
 - **The api.v1 route-contribution contract** (`foundation.sdk/api`) — the
   pure-data `RouteSet`/`RouteContribution`/`Route`/`AuthScope` description of the
   HTTP routes a unit contributes to the API host. **Relocated here from L1
@@ -116,10 +139,12 @@ L2 owns:
   concern — the unit/pipeline engine never declares or mounts routes — so the
   route-declaration contract belongs in Foundation, not the L1 baseplate. It is
   stdlib-only and imports nothing, so it stays a pure-data leaf the API host and
-  any catalogue/OpenAPI generator read. One tolerated transitional edge remains:
-  `framework.runtime/registry` (still physically in the runtime repo, but L2-bound)
-  imports this `foundation.sdk/api`; it is resolved when `registry` relocates to
-  Foundation in SW-3.
+  any catalogue/OpenAPI generator read. **The SW-2 transitional edge is RESOLVED in
+  SW-3:** the registry **index** relocated to `plugfy.foundation.registry` (L2), so
+  the index→`foundation.sdk/api` import is now a clean L2→L2 edge. The only residual
+  importer of `foundation.sdk/api` from the runtime repo is the L3-bound
+  supervisor-coupled `ServiceIndex` (which dials a service's generic Describe), a
+  correct L3→L2 direction dissolved when that package relocates to L3 in SW-5.
 - **The agent/AI contracts** (`foundation.sdk/agent`) — the Assistant/Event chat
   surface and the twelve declarative Agent-Hub primitives + resolver. **Relocated
   here from L1 `contracts/agent` (BR-02, v1.12.12)**: this is the canonical home;
