@@ -145,20 +145,27 @@ Foundations supports **two authoring modes**:
 ### How apps are built
 
 An app built on Foundations is a **context that calls pipelines defined in that
-context**. The app's logic **is** pipelines — they orchestrate the L2 modules,
-components, and connectors that perform the app's tasks; the app writes **no**
-imperative plumbing and never talks to a database, an HTTP endpoint, or a queue
-directly. Every capability a pipeline node invokes is reached through a **capability
-*contract*** (the SPI), never a concrete engine: a store holds the engine-agnostic
-`persistence.SQLDB` seam, a connector node holds the connector contract, and so on.
-**The executor decides** which concrete provider backs each contract — memory,
-filestore, SQLite, Postgres, a network adapter — and **injects** it at the
-composition root (the same model as .NET Entity Framework's `DbContext` over
-interchangeable providers; the data realization is the two-plane model where the
-composition root picks SQLite vs Postgres by edition/config). So building an app
-reduces to **defining its pipelines and declaring the capabilities they use** — in
-either authoring mode above, the app code is identical whichever provider the
-executor injects. Canonical detail:
+context** — but **an app is MORE than its pipelines.** A **pipeline is a FLOW for
+*executing* things** (internal tasks, integrations, calls to other apps/services,
+business rules, validations) — the app's execution/logic layer. The app's **logic**
+**is** pipelines — they orchestrate the L2 modules, components, and connectors that
+perform the app's tasks, and **pipelines call pipelines** (uniform recursion); the
+app writes **no** imperative plumbing and never talks to a database, an HTTP
+endpoint, or a queue directly. Every capability a pipeline node invokes is reached
+through a **capability *contract*** (the SPI), never a concrete engine: a store
+holds the engine-agnostic `persistence.SQLDB` seam, a connector node holds the
+connector contract, and so on. **The executor decides** which concrete provider
+backs each contract — memory, filestore, SQLite, Postgres, a network adapter — and
+**injects** it at the composition root (the same model as .NET Entity Framework's
+`DbContext` over interchangeable providers; the data realization is the two-plane
+model where the composition root picks SQLite vs Postgres by edition/config). So
+building an app's **logic** reduces to **defining its pipelines and declaring the
+capabilities they use** — in either authoring mode above, the app code is identical
+whichever provider the executor injects. On top of that logic an app **also** has
+its **UI/UX/visual surface**, its **artifacts**, and its **other particularities**:
+an app = **{ its pipelines (execution/flows) } + { UI/UX } + { artifacts } +
+{ particularities }**, the *composition* of all of these, **not pipelines alone**.
+Canonical detail:
 [`governance.spine/docs/APP-MODEL.md`](https://github.com/PlugfyOS/plugfy.platform.governance.spine/blob/main/docs/APP-MODEL.md)
 (companion: [`APP-DELIVERY-MODEL.md`](https://github.com/PlugfyOS/plugfy.platform.governance.spine/blob/main/docs/APP-DELIVERY-MODEL.md) for packaging/hosting,
 [`EDB-PERSISTENCE.md`](https://github.com/PlugfyOS/plugfy.platform.governance.spine/blob/main/docs/EDB-PERSISTENCE.md) for the two-plane data seam).
