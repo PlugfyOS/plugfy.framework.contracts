@@ -85,6 +85,24 @@ and emits the final result — with **no** provider registry, persistence, host,
 loader, or capability anywhere in the dependency graph. That is the L1 boundary,
 proven by a binary you can run.
 
+> **Enforced invariant (v1.12.23, #102): the L1 framework depends on NOTHING from
+> L2 foundation or L3 platform.** No L1 module — `framework.contracts`,
+> `framework.pipeline`, the nested `framework.runtime/framework` engine/CLI, or the
+> `runner` — may import `github.com/PlugfyOS/plugfy.foundation.*` or
+> `github.com/PlugfyOS/plugfy.platform.*`. `go list -deps` over all four proves
+> ZERO such imports. The two violations SW-3 left in the pipeline were closed: the
+> `spi.PipelineEngine` interface no longer embeds the L2 foundation `Provider` (the
+> engine's L1 contract is just `Run`; `Name`/`Kind`/`Capabilities`/`HealthCheck`
+> survive only as plain descriptor-derived helpers, and `KindPipeline` is the L1
+> `core.Kind`), and the pipeline-engine-as-registry-Provider self-registration moved
+> OUT of L1 to the composition root (the platform server wiring) — the born-correct
+> dependency inversion (L1 provides, L2/L3 wires). `go mod tidy` consequently dropped
+> `plugfy.foundation.{registry,sdk}` from the pipeline and the nested framework
+> module graphs. (Follow-up: a CI decouple-check that fails if any L1 module imports
+> foundation/platform would make this invariant machine-enforced; flagged in the
+> boundary backlog. The CEL `cel-go` third-party dep in the pipeline is a SEPARATE
+> concern, SW-7c, not a foundation/platform module dep.)
+
 ### The crisp post-relocation L1 surface
 
 After the relocations in the backlog, L1 contains exactly:
@@ -248,14 +266,19 @@ supervision, observability, and the micro-kernel host-composition. It owns:
   deleted (BR-07). `RenderPath`/`RenderDeclarative`/`RenderCustom` stay here as
   OPAQUE STRING tokens whose enum meaning the L2 UI engine owns (BR-04 satisfied
   by the opaque-string boundary — no L3→L2 inversion).
-- **The micro-kernel loader** (`plugfy.platform.kernel/kernel/loader`), the
-  **supervisor** (`plugfy.platform.kernel/kernel/supervisor`, including the
+- **The micro-kernel loader** (`plugfy.platform.kernel/loader`), the
+  **supervisor** (`plugfy.platform.kernel/supervisor`, including the
   generic `plugfy.supervisor.v1` genpb wire contract), the **capability resolver
-  + reconciler** (`plugfy.platform.kernel/kernel/resolver`), and the
-  **supervisor-coupled service discovery** (`plugfy.platform.kernel/kernel/discovery`
+  + reconciler** (`plugfy.platform.kernel/resolver`), and the
+  **supervisor-coupled service discovery** (`plugfy.platform.kernel/discovery`
   — the live `ServiceIndex` + on-disk manifest `Discovery`, package renamed
   `registry`→`discovery` to disambiguate from the L2 `plugfy.foundation.registry`
-  index it imports one-way). **Relocated here from the `plugfy.framework.runtime`
+  index it imports one-way). These packages sit at the **module root** (not a
+  redundant `kernel/` subdir): the import path is `plugfy.platform.kernel/loader`,
+  alongside the R1 packages (`config`/`updater`/`svcmgr`/`obs`/`depsupervisor`).
+  The confusing double-"kernel" path (`plugfy.platform.kernel/kernel/*`) SW-5 left
+  was flattened in **v1.12.23** (#102, kernel namespace clarification).
+  **Relocated here from the `plugfy.framework.runtime`
   outer module in WAVE SW-5 (v1.12.22)**, completing NR-04's host-composition half:
   this machinery is host-side dynamic composition (SCALE), so it belongs in the
   micro-kernel Platform repo, not the framework. The loader imports
