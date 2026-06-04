@@ -7,6 +7,13 @@
 > in **exactly one** layer. The relocations that bring the as-built tree into line
 > with this model are tracked in
 > [`boundary-refactor-backlog.md`](boundary-refactor-backlog.md).
+>
+> **On the status of these rules.** The architecture and its rules are the *current
+> documented decisions*, not frozen law. They are written down precisely so they can
+> be **analyzed, discussed, improved, and adjusted** whenever the context or the
+> needs change. Where this document states a layer responsibility, a boundary, or a
+> dependency direction, read it as "the decision we hold today, and the reasoning
+> behind it" — kept open to revision, not declared permanent.
 
 ## The ruler
 
@@ -85,12 +92,13 @@ and emits the final result — with **no** provider registry, persistence, host,
 loader, or capability anywhere in the dependency graph. That is the L1 boundary,
 proven by a binary you can run.
 
-> **Enforced invariant (v1.12.23, #102): the L1 framework depends on NOTHING from
-> L2 foundation or L3 platform.** No L1 module — `framework.contracts`,
-> `framework.pipeline`, the nested `framework.runtime/framework` engine/CLI, or the
-> `runner` — may import `github.com/PlugfyOS/plugfy.foundation.*` or
-> `github.com/PlugfyOS/plugfy.platform.*`. `go list -deps` over all four proves
-> ZERO such imports. The two violations SW-3 left in the pipeline were closed: the
+> **Documented decision (v1.12.23, #102): today the L1 framework depends on nothing
+> from L2 foundation or L3 platform.** This is the dependency direction we currently
+> hold — open to analysis and revision if the layering needs to change. Under it, no
+> L1 module — `framework.contracts`, `framework.pipeline`, the nested
+> `framework.runtime/framework` engine/CLI, or the `runner` — imports
+> `github.com/PlugfyOS/plugfy.foundation.*` or `github.com/PlugfyOS/plugfy.platform.*`,
+> and `go list -deps` over all four proves ZERO such imports. The two violations SW-3 left in the pipeline were closed: the
 > `spi.PipelineEngine` interface no longer embeds the L2 foundation `Provider` (the
 > engine's L1 contract is just `Run`; `Name`/`Kind`/`Capabilities`/`HealthCheck`
 > survive only as plain descriptor-derived helpers, and `KindPipeline` is the L1
@@ -99,7 +107,7 @@ proven by a binary you can run.
 > dependency inversion (L1 provides, L2/L3 wires). `go mod tidy` consequently dropped
 > `plugfy.foundation.{registry,sdk}` from the pipeline and the nested framework
 > module graphs. (Follow-up: a CI decouple-check that fails if any L1 module imports
-> foundation/platform would make this invariant machine-enforced; flagged in the
+> foundation/platform would make this decision machine-checked; flagged in the
 > boundary backlog. The CEL `cel-go` third-party dep in the pipeline is a SEPARATE
 > concern, SW-7c, not a foundation/platform module dep.)
 

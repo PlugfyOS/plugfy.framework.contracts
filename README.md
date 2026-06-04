@@ -91,7 +91,7 @@ GOWORK=off go test -race ./...
 bash scripts/decouple-check.sh   # enforces stdlib-only + zero unit imports
 ```
 
-## ABI stability (the frozen public surface)
+## ABI stability (the guarded public surface)
 
 Because every unit pins `^1.x` of this baseplate, an accidental change to an
 exported signature would silently break the whole polyrepo. The `abi` package
@@ -112,11 +112,13 @@ GOWORK=off go test ./abi -run TestGoldenABI -update
 The test is stdlib-only (`go/ast`, `go/parser`, `go/types`, `go/importer`), so it
 adds no module dependency and the decoupling gate still holds.
 
-## Rule (non-negotiable)
+## Rule (current documented decision)
 
-`plugfy-common` is **L1**: the root of the dependency arrow. It **imports only
-the standard library** and **no** other `PlugfyOS/*` repo. Any `require` in
-`go.mod` or import of a unit **fails CI**. The bar is *standard library*, not
+This is the dependency rule we hold today — documented so it can be analyzed and
+adjusted if the design needs it, not a permanent law. Under it, `plugfy-common`
+is **L1**: the root of the dependency arrow. It **imports only the standard
+library** and **no** other `PlugfyOS/*` repo. Any `require` in `go.mod` or import
+of a unit **fails CI** (the gate that keeps the decision honest while it stands). The bar is *standard library*, not
 *fewer packages*: the `persistence` contract may import `database/sql` (it is
 stdlib), but the concrete **driver** (`pgx`, the SQLite driver) and `net/http`
 are third-party / runtime concerns that live in the provider repos implementing
