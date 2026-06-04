@@ -74,18 +74,21 @@ standalone job runner (the **CLI** path) that depends on nothing but L1:
 plugfy run <pipeline.v1.json> [--input key=value ...]
 ```
 
-The standalone job runner + CLI live in `plugfy.framework.runtime`'s **nested
-`framework/` module** (the repo's sole module after WAVE SW-6 dissolved the OUTER
-module). The per-`Invoke` runner envelope it drives lives in L1
-`plugfy.framework.pipeline/runner` (rehomed there in SW-6):
+The standalone job runner + CLI live in `plugfy.framework.runtime` — a single flat
+module at the repo ROOT. PHASE 2 (#117) flattened the former nested `framework/`
+module up to the root so the module path is the clean, logical
+`github.com/PlugfyOS/plugfy.framework.runtime` (no confusing double "framework").
+(WAVE SW-6 had earlier dissolved a separate OUTER module.) The per-`Invoke` runner
+envelope it drives lives in L1 `plugfy.framework.pipeline/runner` (rehomed there in
+SW-6):
 
-- `framework/cmd/plugfy/main.go` — the `plugfy` binary entry point.
-- `framework/cli/cli.go` — the `run` subcommand: load a `pipeline.v1` document,
+- `cmd/plugfy/main.go` — the `plugfy` binary entry point.
+- `cli/cli.go` — the `run` subcommand: load a `pipeline.v1` document,
   resolve its unit references against the builtin bricks, run it to completion, and
   print the result JSON.
-- `framework/job/runner.go` + `document.go` + `context.go` + `sink.go` — the job:
+- `job/runner.go` + `document.go` + `context.go` + `sink.go` — the job:
   parse the document, build the graph, execute it through the engine.
-- `framework/builtin` — a self-contained `UnitResolver` over demo bricks
+- `builtin` — a self-contained `UnitResolver` over demo bricks
   (`upper`/`exclaim`) so the runner is runnable with zero external wiring.
 
 A `pipeline.v1` document plus the two-method `Unit` contract is the entire input;
@@ -97,8 +100,9 @@ proven by a binary you can run.
 > **Documented decision (v1.12.23, #102): today the L1 framework depends on nothing
 > from L2 foundation or L3 platform.** This is the dependency direction we currently
 > hold — open to analysis and revision if the layering needs to change. Under it, no
-> L1 module — `framework.contracts`, `framework.pipeline`, the nested
-> `framework.runtime/framework` engine/CLI, or the `runner` — imports
+> L1 module — `framework.contracts`, `framework.pipeline`, the
+> `framework.runtime` engine/CLI (now a clean flat root module after #117), or the
+> `runner` — imports
 > `github.com/PlugfyOS/plugfy.foundation.*` or `github.com/PlugfyOS/plugfy.platform.*`,
 > and `go list -deps` over all four proves ZERO such imports. The two violations SW-3 left in the pipeline were closed: the
 > `spi.PipelineEngine` interface no longer embeds the L2 foundation `Provider` (the
@@ -109,8 +113,9 @@ proven by a binary you can run.
 > dependency inversion (L1 provides, L2/L3 wires). `go mod tidy` consequently dropped
 > `plugfy.foundation.{registry,sdk}` from the pipeline and the nested framework
 > module graphs. The CI decouple-check that fails if any L1 engine package imports
-> foundation/platform is now wired (the `plugfy.framework.runtime` CI build job greps
-> the engine module for `plugfy.foundation`/`plugfy.platform` and fails on a hit), so
+> foundation/platform is now wired (the `plugfy.framework.runtime` CI greps the engine
+> module for `plugfy.foundation`/`plugfy.platform` and fails on a hit, plus the
+> dedicated `scripts/decouple-check.sh` + `decouple-check.yml` added in #117), so
 > this decision is machine-checked. The CEL `cel-go` third-party dep in the pipeline
 > is a SEPARATE concern, SW-7c, not a foundation/platform module dep.
 

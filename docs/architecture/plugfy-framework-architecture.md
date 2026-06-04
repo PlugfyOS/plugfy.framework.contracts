@@ -1063,7 +1063,7 @@ Formato **estímulo → resposta → métrica**.
 
 - **`plugfy.framework.contracts`** — o contrato do `Unit` (+ contexto, descritor, IO tipado), o `LifecycleContext`, a porta `Evaluator`, e as folhas puras (`events`/`errs`/`ids`/`resilience`/`idempotency`); a golden ABI vive aqui.
 - **`plugfy.framework.pipeline`** — o contrato do pipeline (`Pipeline`/`Node`/`Edge`/`NodeType`/`PipelineEngine`/`UnitResolver`/`NodeRunner`), o `engine` de nós genéricos, o `pipelineunit` e o `Runner`.
-- **`plugfy.framework.runtime`** (módulo aninhado `framework/`) — o job runner standalone + a CLI `plugfy` + o `builtin` demo (`cmd/plugfy`, `cli`, `job`, `builtin`).
+- **`plugfy.framework.runtime`** (módulo flat na raiz do repo, após #117 achatar o antigo módulo aninhado `framework/`) — o job runner standalone + a CLI `plugfy` + o `builtin` demo (`cmd/plugfy`, `cli`, `job`, `builtin`).
 
 > Para a visão canônica das três camadas e por que tudo o mais (provider/registry, loader/supervisor, persistência, kernel, triggers, comunicação) **não** é o framework, ver [`LAYERS.md`](LAYERS.md) e [`boundary-refactor-backlog.md`](boundary-refactor-backlog.md).
 
