@@ -108,8 +108,18 @@ L2 owns:
   **no Postgres child process**) for its in-process durable units, while shared/cloud
   run Postgres — the same `SQLDB`-seam stores run unchanged on either (EDB-F2 #69; see
   `governance.spine/docs/EDB-PERSISTENCE.md`).
-- **The concrete `EventBus` SPI + adapters**, the **api route contract**
-  (`contracts/api`), and the **marketplace contract**.
+- **The concrete `EventBus` SPI + adapters** and the **marketplace contract**.
+- **The api.v1 route-contribution contract** (`foundation.sdk/api`) — the
+  pure-data `RouteSet`/`RouteContribution`/`Route`/`AuthScope` description of the
+  HTTP routes a unit contributes to the API host. **Relocated here from L1
+  `contracts/api` (SW-2, v1.12.17)**: mounting HTTP routes is a BUILD-an-app
+  concern — the unit/pipeline engine never declares or mounts routes — so the
+  route-declaration contract belongs in Foundation, not the L1 baseplate. It is
+  stdlib-only and imports nothing, so it stays a pure-data leaf the API host and
+  any catalogue/OpenAPI generator read. One tolerated transitional edge remains:
+  `framework.runtime/registry` (still physically in the runtime repo, but L2-bound)
+  imports this `foundation.sdk/api`; it is resolved when `registry` relocates to
+  Foundation in SW-3.
 - **The agent/AI contracts** (`foundation.sdk/agent`) — the Assistant/Event chat
   surface and the twelve declarative Agent-Hub primitives + resolver. **Relocated
   here from L1 `contracts/agent` (BR-02, v1.12.12)**: this is the canonical home;

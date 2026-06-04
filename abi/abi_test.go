@@ -63,7 +63,6 @@ const goldenPath = "testdata/api.golden"
 // lines. Paths are relative to the module root (the parent of this test's
 // directory).
 var surfacePackages = []string{
-	"api",
 	"errs",
 	"events",
 	"idempotency",

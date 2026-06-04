@@ -33,7 +33,7 @@ The sharpened ruler supersedes the prior phrasing ("framework contains only the 
 | capabilities catalog (domain Kind/capability vocabulary) | **L2** | **NEW** Foundation `capabilities` module |
 | persistence seam (SQLDB/MigrationSet/RegistryStore) | **L2** | ✅ DONE — relocated `contracts/persistence` → `plugfy.foundation.persistence` (NR-02, v1.12.13) |
 | concrete EventBus SPI + adapters | **L2** | `contracts/spi/eventbus` + adapters → Foundation |
-| api route contract | **L2** | `contracts/api` → Foundation |
+| api route contract | **L2** | ✅ DONE — relocated `contracts/api` → `foundation.sdk/api` (SW-2, v1.12.17); one tolerated transitional edge `framework.runtime/registry → foundation.sdk/api` resolved in SW-3 |
 | agent / AI contracts | **L2** | ✅ DONE — relocated `contracts/agent` → `foundation.sdk/agent` (BR-02, v1.12.12) |
 | UI RenderPath / SDUI | **L2** | `foundation.ui.engine` (already there); `RenderPath` leaves `contracts/installed` |
 | marketplace contract | **L2** | Foundation/`platform.system.marketplace` (BR-09) |
@@ -88,9 +88,9 @@ The relocations that crisp L1 down to **unit + pipeline + engine**. These are sh
 - **Accept:** `contracts` no longer ships `installed`; the admissibility matrix has one home in the L3 install/update domain; `system.update` imports it (resolves BR-07).
 
 ### NR-06 (P2) · Relocate the L2 leaf contracts + engine domain handlers to Foundation
-- **Where:** `contracts/api`, `contracts/agent` ✅ (BR-02, v1.12.12), `contracts/grpcstatus` ✅ (R2, v1.12.15 → `foundation.sdk/grpcstatus`), the concrete `eventbus` SPI + adapters, `pipeline/application/action`, `pipeline/application/trigger`, `pipeline/application/expr` (CEL Evaluator impl), `ModelGateway` (`spi/collaborators.go`), `pipeline/application/engine/node_llm.go` + `node_ui.go`.
+- **Where:** `contracts/api` ✅ (SW-2, v1.12.17 → `foundation.sdk/api`), `contracts/agent` ✅ (BR-02, v1.12.12), `contracts/grpcstatus` ✅ (R2, v1.12.15 → `foundation.sdk/grpcstatus`), the concrete `eventbus` SPI + adapters, `pipeline/application/action`, `pipeline/application/trigger`, `pipeline/application/expr` (CEL Evaluator impl), `ModelGateway` (`spi/collaborators.go`), `pipeline/application/engine/node_llm.go` + `node_ui.go`.
 - **What:** these are domain/capability contracts + concrete handlers — L2 Foundations (trigger hosting is L3, see NR's map; folded under R6 de-domain + R1 host machinery). Wave **R2** (leaf contracts → L2) + **R6** (engine de-domain: CEL impl, ModelGateway, LLM/UI nodes leave the engine).
-- **PARTIAL:** the `agent` and `grpcstatus` leaves have landed in `foundation.sdk`; remaining R2 leaf moves = `contracts/api` + the `eventbus` SPI/adapters.
+- **PARTIAL:** the `agent`, `grpcstatus` and `api` leaves have landed in `foundation.sdk`; remaining R2 leaf move = the `eventbus` SPI/adapters. SW-2 leaves one tolerated transitional edge — `framework.runtime/registry` (L2-bound, still physically in the runtime repo) imports `foundation.sdk/api` — resolved when `registry` relocates to Foundation in **SW-3**.
 - **Accept:** `contracts` exports only L1 leaves; the engine's node set is purely generic (no domain-named node type); CEL/ModelGateway live in Foundation.
 
 ### NR-07 (P3) · Create the explicit Foundation capabilities catalog module
@@ -244,7 +244,7 @@ The relocations execute in dependency order. Each wave maps to the GitHub epic's
 | Wave | Goal | Items | Depends on |
 |---|---|---|---|
 | **R1** | Kernel → L3 (lowest L1 coupling, move early); Ollama → Foundation/AI | NR-03, BR-03, BR-05, bug #6 | — |
-| **R2** ⏳ | Leaf contracts → L2 (api, agent ✅ v1.12.12, grpcstatus ✅ v1.12.15, eventbus) | NR-06 (contracts subset), BR-02 ✅, IMP-03, bug #10 (grpcstatus half ✅) | — |
+| **R2** ⏳ | Leaf contracts → L2 (api ✅ v1.12.17, agent ✅ v1.12.12, grpcstatus ✅ v1.12.15, eventbus) | NR-06 (contracts subset), BR-02 ✅, IMP-03, bug #10 (grpcstatus half ✅) | api SW-2 leaves one tolerated `runtime/registry → sdk/api` edge, resolved by SW-3 |
 | **R3** ✅ | Persistence seam → L2 (atomic re-import + retag + golden-regen) — DONE v1.12.13 | NR-02 ✅, DOC-01 (persistence half) ✅, bug #4 ✅ | **EDB-F2 (#69)** store cutovers landed |
 | **R4** | `installed` (admissibility/manifest/layout) → L3; `RenderPath` → L2 UI | NR-05, BR-04, BR-07, bug #5 | — |
 | **R5** | Micro-kernel machinery split (loader/supervisor/resolver → L3; plugin/wasm → L2); **NR-01 un-embed Provider first** | NR-04, NR-01, BR-01, bugs #1, #2, #9 | un-embed (bug #2) precedes registry move |
