@@ -236,6 +236,8 @@ Defects surfaced while reading the as-built L1. Each is filed as a discrete bug-
 
 The relocations execute in dependency order. Each wave maps to the GitHub epic's sub-issues and to the ROADMAP milestone. The persistence wave (R3) interleaves with finishing **EDB-F2 (#69)**.
 
+> **EDB-F2 edition-selector flip — first cut landed (v1.12.14).** `--edition local` now runs a durable SQLite data plane for its **4 in-process durable units** (security / scheduler / devices / marketplace) over **per-unit `data-plane.<unit>.db` files** built through `wiring.BuildDataPlaneSQLDB` → `adapters.NewSQLite` (NOT `BuildDatabase`, NOT the dead registry `"sqlite"` provider) — and **no embedded Postgres is spawned** on local (`Selection.Engine="sqlite"`, `Database=""`). The single edition branch is `config.Selection.Engine` (`postgres|sqlite`). Desktop stays in-memory (the smoke baseline). Full local durability — the 5 spawned gateways + 6 memory-only units + SQLite RAG/identity — is tracked as **EDB-F3 (#70 follow-up)**. See `governance.spine/docs/EDB-PERSISTENCE.md §5`.
+
 | Wave | Goal | Items | Depends on |
 |---|---|---|---|
 | **R1** | Kernel → L3 (lowest L1 coupling, move early); Ollama → Foundation/AI | NR-03, BR-03, BR-05, bug #6 | — |

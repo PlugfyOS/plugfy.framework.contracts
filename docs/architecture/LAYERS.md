@@ -99,7 +99,12 @@ L2 owns:
   `contracts/persistence` (NR-02 / DOC-01, v1.12.13): a pipeline runs with no
   database, and `ApplyMigrations` literally executes DDL, so persistence is a
   capability/adapter seam, not an L1 contract. The engine driver
-  (`provider.database`) and every store import it one-way.
+  (`provider.database`) and every store import it one-way. The data-plane ENGINE is
+  an **edition decision** at the platform composition root, not a layer concern:
+  `--edition local` opens an embedded, per-unit SQLite data plane (pure-Go modernc,
+  **no Postgres child process**) for its in-process durable units, while shared/cloud
+  run Postgres — the same `SQLDB`-seam stores run unchanged on either (EDB-F2 #69; see
+  `governance.spine/docs/EDB-PERSISTENCE.md`).
 - **The concrete `EventBus` SPI + adapters**, the **api route contract**
   (`contracts/api`), and the **marketplace contract**.
 - **The agent/AI contracts** (`foundation.sdk/agent`) — the Assistant/Event chat
